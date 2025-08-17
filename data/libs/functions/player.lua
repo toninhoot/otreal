@@ -113,8 +113,18 @@ function Player.withdrawMoney(self, amount)
         return Bank.withdraw(self, amount)
 end
 
+local function getPlayerKingdomId(player)
+        local r = db.storeQuery(string.format("SELECT kingdom FROM players WHERE id=%d", player:getGuid()))
+        if not r then
+                return 0
+        end
+        local k = result.getNumber(r, "kingdom") or 0
+        result.free(r)
+        return k
+end
+
 local function taxBreakdown(amount, player)
-        local kid = player:getKingdom()
+        local kid = player.getKingdom and player:getKingdom() or getPlayerKingdomId(player)
         local fedRate, stateRate = 0, 0
         do
                 local r = db.storeQuery("SELECT rate FROM economy_tariffs WHERE scope='FEDERAL' LIMIT 1")
