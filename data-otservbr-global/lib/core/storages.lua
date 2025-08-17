@@ -2982,10 +2982,6 @@ Storage = {
 		TibiorasBox = 63977,
 	},
 
-	VipSystem = {
-		OnlineCoinsGain = 150002,
-		OnlineTokensGain = 150003,
-	},
 }
 
 GlobalStorage = {

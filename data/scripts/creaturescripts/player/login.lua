@@ -83,41 +83,16 @@ function playerLoginGlobal.onLogin(player)
 		end
 	end
 
-	-- Send Client Exp Display
-	if configManager.getBoolean(configKeys.XP_DISPLAY_MODE) then
-		local baseRate = player:getFinalBaseRateExperience() * 100
-		if configManager.getBoolean(configKeys.VIP_SYSTEM_ENABLED) then
-			local vipBonusExp = configManager.getNumber(configKeys.VIP_BONUS_EXP)
-			if vipBonusExp > 0 and player:isVip() then
-				vipBonusExp = (vipBonusExp > 100 and 100) or vipBonusExp
-				baseRate = baseRate * (1 + (vipBonusExp / 100))
-				player:sendTextMessage(MESSAGE_BOOSTED_CREATURE, "Normal base xp is: " .. baseRate .. "%, because you are VIP, bonus of " .. vipBonusExp .. "%")
-			end
-		end
-
-		player:setBaseXpGain(baseRate)
-	end
+       -- Send Client Exp Display
+       if configManager.getBoolean(configKeys.XP_DISPLAY_MODE) then
+               local baseRate = player:getFinalBaseRateExperience() * 100
+               player:setBaseXpGain(baseRate)
+       end
 
 	player:setStaminaXpBoost(player:getFinalBonusStamina() * 100)
 	player:getFinalLowLevelBonus()
 
-	-- Updates the player's VIP status and executes corresponding actions if applicable.
-	if configManager.getBoolean(configKeys.VIP_SYSTEM_ENABLED) then
-		local isCurrentlyVip = player:isVip()
-		local hadVipStatus = player:kv():scoped("account"):get("vip-system") or false
 
-		if hadVipStatus ~= isCurrentlyVip then
-			if hadVipStatus then
-				player:onRemoveVip()
-			else
-				player:onAddVip(player:getVipDays())
-			end
-		end
-
-		if isCurrentlyVip then
-			player:sendVipStatus()
-		end
-	end
 
 	-- Set Ghost Mode
 	if player:getGroup():getId() >= GROUP_TYPE_GAMEMASTER then

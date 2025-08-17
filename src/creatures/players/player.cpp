@@ -216,13 +216,9 @@ std::string Player::getDescription(int32_t lookDistance) {
 			s << " " << subjectPronoun << " " << getSubjectVerb() << " " << article << " " << loyaltyTitle << ".";
 		}
 
-		if (isVip()) {
-			s << " " << subjectPronoun << " " << getSubjectVerb() << " VIP.";
-		}
-
-		// --- Titles / Kingdom (when looking at another player)
-		if (isPresident_) {
-			s << " " << subjectPronoun << " " << getSubjectVerb() << " the President of "
+               // --- Titles / Kingdom (when looking at another player)
+               if (isPresident_) {
+                       s << " " << subjectPronoun << " " << getSubjectVerb() << " the President of "
 			  << g_configManager().getString(SERVER_NAME) << ".";
 		} else if (isGovernor_) {
 			if (const char* k = kingdomName(kingdom_)) {
@@ -3423,16 +3419,9 @@ void Player::addExperience(const std::shared_ptr<Creature> &target, uint64_t exp
 
 	if (sendText) {
 		std::string expString = fmt::format("{} experience point{}.", exp, (exp != 1 ? "s" : ""));
-		if (isVip()) {
-			uint8_t expPercent = g_configManager().getNumber(VIP_BONUS_EXP);
-			if (expPercent > 0) {
-				expString = expString + fmt::format(" (VIP bonus {}%)", expPercent > 100 ? 100 : expPercent);
-			}
-		}
-
-		if (handleAnimusMastery) {
-			expString = fmt::format("{} (animus mastery bonus {:.1f}%)", expString, (animusMasteryMultiplier - 1) * 100);
-		}
+               if (handleAnimusMastery) {
+                       expString = fmt::format("{} (animus mastery bonus {:.1f}%)", expString, (animusMasteryMultiplier - 1) * 100);
+               }
 
 		TextMessage message(MESSAGE_EXPERIENCE, "You gained " + expString + (handleHazardExperience ? " (Hazard)" : ""));
 		message.position = position;
@@ -5359,11 +5348,7 @@ bool Player::checkAutoLoot(bool isBoss) const {
 	if (!g_configManager().getBoolean(AUTOLOOT)) {
 		return false;
 	}
-	if (g_configManager().getBoolean(VIP_SYSTEM_ENABLED) && g_configManager().getBoolean(VIP_AUTOLOOT_VIP_ONLY) && !isVip()) {
-		return false;
-	}
-
-	auto featureKV = kv()->scoped("features")->get("autoloot");
+       auto featureKV = kv()->scoped("features")->get("autoloot");
 	auto value = featureKV.has_value() ? featureKV->getNumber() : 0;
 	if (value == 2) {
 		return true;
@@ -6981,7 +6966,7 @@ time_t Player::getPremiumLastDay() const {
 }
 
 bool Player::isVip() const {
-	return g_configManager().getBoolean(VIP_SYSTEM_ENABLED) && (getPremiumDays() > 0 || getPremiumLastDay() > getTimeNow());
+       return false;
 }
 
 void Player::setTibiaCoins(int32_t v) {
@@ -7982,9 +7967,8 @@ void Player::onThink(uint32_t interval) {
 	// Momentum (cooldown resets)
 	triggerMomentum();
 	const auto &playerTile = getTile();
-	const bool vipStaysOnline = isVip() && g_configManager().getBoolean(VIP_STAY_ONLINE);
-	idleTime += interval;
-	if (playerTile && !playerTile->hasFlag(TILESTATE_NOLOGOUT) && !isAccessPlayer() && !isExerciseTraining() && !vipStaysOnline) {
+       idleTime += interval;
+       if (playerTile && !playerTile->hasFlag(TILESTATE_NOLOGOUT) && !isAccessPlayer() && !isExerciseTraining()) {
 		const int32_t kickAfterMinutes = g_configManager().getNumber(KICK_AFTER_MINUTES);
 		if (idleTime > (kickAfterMinutes * 60000) + 60000) {
 			removePlayer(true);

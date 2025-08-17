@@ -348,11 +348,6 @@ function Player:CreateFamiliarSpell(spellId)
 	local summonDuration = 60 * configManager.getNumber(configKeys.FAMILIAR_TIME) / 2
 	local condition = Condition(CONDITION_SPELLCOOLDOWN, CONDITIONID_DEFAULT, spellId)
 	local cooldown = summonDuration * 2
-	if self:isVip() then
-		local reduction = configManager.getNumber(configKeys.VIP_FAMILIAR_TIME_COOLDOWN_REDUCTION)
-		reduction = (reduction > summonDuration and summonDuration) or reduction
-		cooldown = cooldown - reduction * 60
-	end
 
 	local createdSuccessfully = self:createFamiliar(familiarName, summonDuration)
 	if createdSuccessfully then
@@ -564,30 +559,12 @@ function Player:calculateLootFactor(monster)
 		end
 	end
 
-	local vipActivators = 0
-	local vipBoost = 0
-	local suffix = ""
+       local suffix = ""
 
-	for _, participant in ipairs(participants) do
-		if participant:isVip() then
-			local boost = configManager.getNumber(configKeys.VIP_BONUS_LOOT)
-			boost = ((boost > 100 and 100) or boost) / 100
-			vipBoost = vipBoost + boost
-			vipActivators = vipActivators + 1
-		end
-	end
-	if vipActivators > 0 then
-		vipBoost = vipBoost / (vipActivators ^ configManager.getFloat(configKeys.PARTY_SHARE_LOOT_BOOSTS_DIMINISHING_FACTOR))
-		factor = factor * (1 + vipBoost)
-	end
-	if vipBoost > 0 then
-		suffix = string.format("vip bonus %d%%", math.floor(vipBoost * 100 + 0.5))
-	end
-
-	return {
-		factor = factor,
-		msgSuffix = suffix,
-	}
+       return {
+               factor = factor,
+               msgSuffix = suffix,
+       }
 end
 
 function Player:setExhaustion(scope, seconds)
