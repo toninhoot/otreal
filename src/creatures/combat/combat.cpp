@@ -2422,14 +2422,13 @@ void Combat::applyExtensions(const std::shared_ptr<Creature> &caster, const std:
 	} else if (monster) {
 		baseChance = monster->getCriticalChance() * 100;
 		baseBonus = monster->getCriticalDamage() * 100;
-		baseBonus += damage.criticalDamage;
-		double multiplier = 1.0 + static_cast<double>(baseBonus) / 10000;
-		baseChance += static_cast<uint16_t>(damage.criticalChance);
-
-		if (baseChance != 0 && uniform_random(1, 10000) <= baseChance) {
-			damage.critical = true;
-			damage.primary.value *= multiplier;
-			damage.secondary.value *= multiplier;
+		if (baseChance > 0) {
+			double multiplier = 1.0 + static_cast<double>(baseBonus) / 10000.0;
+			if (uniform_random(1, 10000) <= baseChance) {
+				damage.critical = true;
+				damage.primary.value *= multiplier;
+				damage.secondary.value *= multiplier;
+			}
 		}
 
 		damage.primary.value *= monster->getAttackMultiplier();
