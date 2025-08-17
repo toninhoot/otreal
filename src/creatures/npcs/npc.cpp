@@ -14,11 +14,75 @@
 #include "creatures/npcs/npcs.hpp"
 #include "creatures/players/player.hpp"
 #include "game/game.hpp"
+#include "database/database.hpp"
 #include "game/scheduling/dispatcher.hpp"
 #include "lib/metrics/metrics.hpp"
 #include "lua/callbacks/creaturecallback.hpp"
 #include "lua/global/shared_object.hpp"
 #include "map/spectators.hpp"
+
+namespace {
+struct TaxBreakdown {
+    uint64_t tax = 0;
+    uint64_t federal = 0;
+    uint64_t state = 0;
+    uint32_t kingdom = 0;
+};
+
+TaxBreakdown computeTax(uint64_t amount, const Player &player) {
+    TaxBreakdown b;
+    b.kingdom = static_cast<uint32_t>(player.getKingdom());
+    auto &db = g_database();
+    if (const auto &res = db.storeQuery("SELECT rate FROM economy_tariffs WHERE scope='FEDERAL' LIMIT 1")) {
+        b.federal = (amount * res->getNumber<uint32_t>("rate")) / 100;
+    }
+    if (const auto &res = db.storeQuery(fmt::format(
+            "SELECT rate FROM economy_tariffs WHERE scope='KINGDOM' AND kingdom_id={} LIMIT 1",
+            b.kingdom))) {
+        b.state = (amount * res->getNumber<uint32_t>("rate")) / 100;
+    }
+    b.tax = b.federal + b.state;
+    return b;
+}
+
+void addBankById(uint32_t id, uint64_t amount) {
+    if (amount == 0) {
+        return;
+    }
+    if (const auto &p = g_game().getPlayerByGUID(id)) {
+        p->setBankBalance(p->getBankBalance() + amount);
+    } else {
+        g_database().executeQuery(fmt::format(
+                "UPDATE players SET balance = balance + {} WHERE id={}", amount, id));
+    }
+}
+
+void distributeTax(const TaxBreakdown &b, const std::shared_ptr<Player> &actor) {
+    auto actorId = actor ? actor->getGUID() : 0u;
+    uint32_t presId = 0;
+    if (const auto &res = g_database().storeQuery("SELECT id FROM players WHERE is_president=1 LIMIT 1")) {
+        presId = res->getNumber<uint32_t>("id");
+    }
+    if (b.federal > 0 && presId != 0) {
+        if (actorId == presId && actor) {
+            actor->setBankBalance(actor->getBankBalance() + b.federal);
+        } else {
+            addBankById(presId, b.federal);
+        }
+    }
+    if (const auto &res = g_database().storeQuery(fmt::format(
+            "SELECT id FROM players WHERE is_governor=1 AND kingdom={} LIMIT 1", b.kingdom))) {
+        uint32_t gid = res->getNumber<uint32_t>("id");
+        if (b.state > 0 && gid != 0 && gid != presId) {
+            if (actorId == gid && actor) {
+                actor->setBankBalance(actor->getBankBalance() + b.state);
+            } else {
+                addBankById(gid, b.state);
+            }
+        }
+    }
+}
+} // namespace
 
 int32_t Npc::despawnRange;
 int32_t Npc::despawnRadius;
@@ -547,31 +611,36 @@ void Npc::onPlayerSellItem(const std::shared_ptr<Player> &player, uint16_t itemI
 		return;
 	}
 
-	auto totalCost = static_cast<uint64_t>(sellPrice * totalRemoved);
-	g_logger().debug("[Npc::onPlayerSellItem] - Removing items from player {} amount {} of items with id {} on shop for npc {}", player->getName(), toRemove, itemId, getName());
-	if (totalRemoved > 0 && totalCost > 0) {
-		if (getCurrency() == ITEM_GOLD_COIN) {
-			totalPrice += totalCost;
-			if (g_configManager().getBoolean(AUTOBANK)) {
-				player->setBankBalance(player->getBankBalance() + totalCost);
-			} else {
-				g_game().addMoney(player, totalCost);
-			}
-			g_metrics().addCounter("balance_increase", totalCost, { { "player", player->getName() }, { "context", "npc_sale" } });
-		} else {
-			const auto &newItem = Item::CreateItem(getCurrency(), totalCost);
-			if (newItem) {
-				g_game().internalPlayerAddItem(player, newItem, true);
-			}
-		}
-	}
+        auto totalCost = static_cast<uint64_t>(sellPrice * totalRemoved);
+        g_logger().debug("[Npc::onPlayerSellItem] - Removing items from player {} amount {} of items with id {} on shop for npc {}", player->getName(), toRemove, itemId, getName());
+        if (totalRemoved > 0 && totalCost > 0) {
+                auto breakdown = computeTax(totalCost, *player);
+                uint64_t net = totalCost - breakdown.tax;
+                if (net > 0) {
+                        if (getCurrency() == ITEM_GOLD_COIN) {
+                                totalPrice += net;
+                                if (g_configManager().getBoolean(AUTOBANK)) {
+                                        player->setBankBalance(player->getBankBalance() + net);
+                                } else {
+                                        g_game().addMoney(player, net);
+                                }
+                                g_metrics().addCounter("balance_increase", net, { { "player", player->getName() }, { "context", "npc_sale" } });
+                        } else {
+                                const auto &newItem = Item::CreateItem(getCurrency(), net);
+                                if (newItem) {
+                                        g_game().internalPlayerAddItem(player, newItem, true);
+                                }
+                        }
+                }
+                distributeTax(breakdown, player);
+        }
 
-	// npc:onSellItem(player, itemId, subType, amount, ignore, itemName, totalCost)
-	auto callback = CreatureCallback(npcType->info.scriptInterface, getNpc());
-	if (callback.startScriptInterface(npcType->info.playerSellEvent)) {
-		callback.pushSpecificCreature(static_self_cast<Npc>());
-		callback.pushCreature(player);
-		callback.pushNumber(itemType.id);
+        // npc:onSellItem(player, itemId, subType, amount, ignore, itemName, totalCost)
+        auto callback = CreatureCallback(npcType->info.scriptInterface, getNpc());
+        if (callback.startScriptInterface(npcType->info.playerSellEvent)) {
+                callback.pushSpecificCreature(static_self_cast<Npc>());
+                callback.pushCreature(player);
+                callback.pushNumber(itemType.id);
 		callback.pushNumber(subType);
 		callback.pushNumber(totalRemoved);
 		callback.pushBoolean(ignore);
