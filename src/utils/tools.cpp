@@ -19,6 +19,7 @@
 
 #include "absl/debugging/stacktrace.h"
 #include "absl/debugging/symbolize.h"
+#include <cassert>
 
 void printXMLError(const std::string &where, const std::string &fileName, const pugi::xml_parse_result &result) {
 	g_logger().error("[{}] Failed to load {}: {}", where, fileName, result.description());
@@ -239,10 +240,11 @@ std::string generateToken(const std::string &key, uint32_t ticks) {
 	const uint32_t truncHash = std::stol(message.substr(2 * offset, 8), nullptr, 16) & 0x7FFFFFFF;
 	message.assign(std::to_string(truncHash));
 
-	// return only last AUTHENTICATOR_DIGITS (default 6) digits, also asserts exactly 6 digits
+	// return last AUTHENTICATOR_DIGITS (default 6) digits, padding with leading zeros if needed
 	const uint32_t hashLen = message.length();
 	message.assign(message.substr(hashLen - std::min(hashLen, AUTHENTICATOR_DIGITS)));
 	message.insert(0, AUTHENTICATOR_DIGITS - std::min(hashLen, AUTHENTICATOR_DIGITS), '0');
+	assert(message.length() == AUTHENTICATOR_DIGITS);
 	return message;
 }
 
