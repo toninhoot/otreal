@@ -33,9 +33,6 @@
 #include "server/network/protocol/protocolstatus.hpp"
 #include "server/network/webhook/webhook.hpp"
 #include "creatures/players/vocations/vocation.hpp"
-#include "utils/tools.hpp"
-#include <iostream>
-#include <thread>
 
 CanaryServer::CanaryServer(
 	Logger &logger,
@@ -173,12 +170,10 @@ int CanaryServer::run() {
 	logger.info("{} {}", g_configManager().getString(SERVER_NAME), "server online!");
 	g_logger().setLevel(g_configManager().getString(LOGLEVEL));
 
-	std::thread adminThread(&CanaryServer::adminConsole, this);
 	serviceManager.run();
-	adminThread.join();
 
 	shutdown();
-	return restartRequested ? RESTART_CODE : EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 
 void CanaryServer::setWorldType() {
@@ -345,9 +340,11 @@ void CanaryServer::validateDatapack() {
 	const auto datapackName = g_configManager().getString(DATA_DIRECTORY);
 
 	if (!useAnyDatapack && datapackName != "data-canary" && datapackName != "data-otservbr-global") {
-		throw FailedToInitializeCanary(fmt::format("The datapack folder name '{}' is wrong. Valid names: 'data-canary', "
-		                                           "'data-otservbr-global', or set USE_ANY_DATAPACK_FOLDER = true in config.lua.",
-		                                           datapackName));
+		throw FailedToInitializeCanary(fmt::format(
+			"The datapack folder name '{}' is wrong. Valid names: 'data-canary', "
+			"'data-otservbr-global', or set USE_ANY_DATAPACK_FOLDER = true in config.lua.",
+			datapackName
+		));
 	}
 }
 
@@ -360,7 +357,10 @@ void CanaryServer::initializeDatabase() {
 
 	logger.debug("Running database manager...");
 	if (!DatabaseManager::isDatabaseSetup()) {
-		throw FailedToInitializeCanary(fmt::format("The database you have specified in {} is empty, please import the schema.sql to your database.", g_configManager().getConfigFileLua()));
+		throw FailedToInitializeCanary(fmt::format(
+			"The database you have specified in {} is empty, please import the schema.sql to your database.",
+			g_configManager().getConfigFileLua()
+		));
 	}
 
 	DatabaseManager::updateDatabase();
@@ -431,34 +431,4 @@ void CanaryServer::shutdown() {
 	g_dispatcher().shutdown();
 	g_metrics().shutdown();
 	g_threadPool().shutdown();
-}
-
-void CanaryServer::adminConsole() {
-	while (g_game().getGameState() != GAME_STATE_SHUTDOWN) {
-		std::cout << "\n[0] Restart server\n[1] Shutdown server\n[2] Set PvP mode\n> ";
-		int option = -1;
-		if (!(std::cin >> option)) {
-			return;
-		}
-		if (option == 0) {
-			restartRequested = true;
-			g_game().setGameState(GAME_STATE_SHUTDOWN);
-		} else if (option == 1) {
-			g_game().setGameState(GAME_STATE_SHUTDOWN);
-		} else if (option == 2) {
-			std::cout << "Mode (pvp/no-pvp/pvp-enforced): ";
-			std::string mode;
-			std::cin >> mode;
-			const auto lower = asLowerCaseString(mode);
-			if (lower == "pvp") {
-				g_game().setWorldType(WORLD_TYPE_PVP);
-			} else if (lower == "no-pvp") {
-				g_game().setWorldType(WORLD_TYPE_NO_PVP);
-			} else if (lower == "pvp-enforced") {
-				g_game().setWorldType(WORLD_TYPE_PVP_ENFORCED);
-			} else {
-				std::cout << "Unknown mode" << std::endl;
-			}
-		}
-	}
 }

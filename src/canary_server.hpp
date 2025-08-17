@@ -11,7 +11,6 @@
 
 #include "security/rsa.hpp"
 #include "server/server.hpp"
-#include <atomic>
 
 class Logger;
 
@@ -39,7 +38,6 @@ public:
 	);
 
 	int run();
-	static constexpr int RESTART_CODE = 1;
 
 private:
 	enum class LoaderStatus : uint8_t {
@@ -72,7 +70,4 @@ private:
 	void loadMaps() const;
 	void setupHousesRent();
 	void modulesLoadHelper(bool loaded, std::string moduleName);
-
-	void adminConsole();
-	std::atomic<bool> restartRequested { false };
 };
