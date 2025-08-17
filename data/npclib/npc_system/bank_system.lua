@@ -249,23 +249,31 @@ function Npc:parseBank(message, npc, creature, npcHandler)
 
   -- Withdraw money
   if MsgContains(message, "withdraw") then
-    if string.match(message, "%d+") then
-      local amount = getMoneyCount(message)
-      if not isValidMoney(amount) or not Bank.hasBalance(player, amount) then
-        npcHandler:say("There is not enough gold on your account.", npc, creature)
-        npcHandler:setTopic(playerId, 0)
+    local amount
+    if MsgFind(message, "withdraw all") then
+      if Bank and Bank.balance then
+        amount = Bank.balance(player)
       else
-        count[playerId] = amount
-        local b = iofBreakdown(amount, player)
-        npcHandler:say(string.format("Are you sure you wish to withdraw %d gold? IOF 5%%: %d. You will receive: %d.", amount, b.tax, b.net), npc, creature)
-        npcHandler:setTopic(playerId, 7)
+        amount = player:getBankBalance()
       end
-      return true
-    else
+    elseif string.match(message, "%d+") then
+      amount = getMoneyCount(message)
+    end
+    if amount == nil then
       npcHandler:say("Please tell me how much gold you would like to withdraw.", npc, creature)
       npcHandler:setTopic(playerId, 6)
       return true
     end
+    if not isValidMoney(amount) or not Bank.hasBalance(player, amount) then
+      npcHandler:say("There is not enough gold on your account.", npc, creature)
+      npcHandler:setTopic(playerId, 0)
+    else
+      count[playerId] = amount
+      local b = iofBreakdown(amount, player)
+      npcHandler:say(string.format("Are you sure you wish to withdraw %d gold? IOF 5%%: %d. You will receive: %d.", amount, b.tax, b.net), npc, creature)
+      npcHandler:setTopic(playerId, 7)
+    end
+    return true
   end
 
   if npcHandler:getTopic(playerId) == 6 then
