@@ -10,11 +10,7 @@ function feature.onSay(player, words, param)
 	if not configManager.getBoolean(configKeys.AUTOLOOT) then
 		return true
 	end
-	if configManager.getBoolean(configKeys.VIP_SYSTEM_ENABLED) and configManager.getBoolean(configKeys.VIP_AUTOLOOT_VIP_ONLY) and not player:isVip() then
-		player:sendCancelMessage("You need to be VIP to use this command!")
-		return true
-	end
-	if not table.contains(validValues, param) then
+       if not table.contains(validValues, param) then
 		local validValuesStr = table.concat(validValues, "/")
 		player:sendTextMessage(MESSAGE_EVENT_ADVANCE, "Invalid param specified. Usage: !feature [" .. validValuesStr .. "]")
 		return true

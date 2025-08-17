@@ -44,10 +44,10 @@ function RegenSoul(id, delay)
 		DailyRewardBonus.Soul[id] = nil
 		return false
 	end
-	local maxsoul = 100
-	if (configManager.getBoolean(configKeys.VIP_SYSTEM_ENABLED) and player:isVip()) or player:isPremium() then
-		maxsoul = 200
-	end
+       local maxsoul = 100
+       if player:isPremium() then
+               maxsoul = 200
+       end
 	if player:getTile():hasFlag(TILESTATE_PROTECTIONZONE) then
 		if player:getSoul() < maxsoul then
 			player:addSoul(1)

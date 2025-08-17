@@ -411,10 +411,10 @@ function Player.selectDailyReward(self, msg)
 		return false
 	end
 
-	local rewardCount = dailyTable.freeAccount
-	if (configManager.getBoolean(configKeys.VIP_SYSTEM_ENABLED) and self:isVip()) or self:isPremium() then
-		rewardCount = dailyTable.premiumAccount
-	end
+       local rewardCount = dailyTable.freeAccount
+       if self:isPremium() then
+               rewardCount = dailyTable.premiumAccount
+       end
 
 	local dailyRewardMessage = false
 
