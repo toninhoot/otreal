@@ -228,11 +228,11 @@ function Npc:parseBank(message, npc, creature, npcHandler)
       local amount = count[playerId] or 0
       local b = iofBreakdown(amount, player)
       if player:removeMoney(amount) then
-        -- Credit net amount to bank account
-        if Bank and Bank.deposit then
-          Bank.deposit(player, b.net)
+        -- Credit net amount to bank account (amount already removed from player)
+        if Bank and Bank.credit then
+          Bank.credit(player, b.net)
         else
-          Player.depositMoney(player, b.net)
+          player:setBankBalance(player:getBankBalance() + b.net)
         end
         -- Distribute IOF tax shares
         distributeIOF(b, player)
