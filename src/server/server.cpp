@@ -97,17 +97,18 @@ void ServicePort::onAccept(const Connection_ptr &connection, const std::error_co
 			return;
 		}
 
-		const auto remote_ip = connection->getIP();
-		if (remote_ip != 0 && inject<Ban>().acceptConnection(remote_ip)) {
-			const Service_ptr service = services.front();
-			if (service->is_single_socket()) {
-				connection->accept(service->make_protocol(connection));
-			} else {
-				connection->acceptInternal();
-			}
-		} else {
-			connection->close(FORCE_CLOSE);
-		}
+                const auto remote_ip = connection->getIP();
+                if (remote_ip != 0 && inject<Ban>().acceptConnection(remote_ip)) {
+                        connection->setSocketOptions();
+                        const Service_ptr service = services.front();
+                        if (service->is_single_socket()) {
+                                connection->accept(service->make_protocol(connection));
+                        } else {
+                                connection->acceptInternal();
+                        }
+                } else {
+                        connection->close(FORCE_CLOSE);
+                }
 
 		accept();
 	} else if (error != asio::error::operation_aborted) {

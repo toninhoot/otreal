@@ -68,7 +68,7 @@ public:
 
 	void send(const OutputMessage_ptr &outputMessage);
 
-	uint32_t getIP();
+        uint32_t getIP();
 
 private:
 	void parseProxyIdentification(const std::error_code &error);
@@ -79,13 +79,15 @@ private:
 
 	static void handleTimeout(ConnectionWeak_ptr connectionWeak, const std::error_code &error);
 
-	void closeSocket();
-	void internalWorker();
-	void internalSend(const OutputMessage_ptr &outputMessage);
+        void closeSocket();
+        void internalWorker();
+        void internalSend(const OutputMessage_ptr &outputMessage);
 
-	asio::ip::tcp::socket &getSocket() {
-		return socket;
-	}
+        void setSocketOptions();
+
+        asio::ip::tcp::socket &getSocket() {
+                return socket;
+        }
 
 	asio::high_resolution_timer readTimer;
 	asio::high_resolution_timer writeTimer;
