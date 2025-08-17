@@ -152,10 +152,6 @@ bool ConfigManager::load() {
 	loadBoolConfig(L, TOGGLE_TRAVELS_FREE, "toggleTravelsFree", false);
 	loadBoolConfig(L, TOGGLE_WHEELSYSTEM, "wheelSystemEnabled", true);
 	loadBoolConfig(L, USE_ANY_DATAPACK_FOLDER, "useAnyDatapackFolder", false);
-	loadBoolConfig(L, VIP_AUTOLOOT_VIP_ONLY, "vipAutoLootVipOnly", false);
-	loadBoolConfig(L, VIP_KEEP_HOUSE, "vipKeepHouse", false);
-	loadBoolConfig(L, VIP_STAY_ONLINE, "vipStayOnline", false);
-	loadBoolConfig(L, VIP_SYSTEM_ENABLED, "vipSystemEnabled", false);
 	loadBoolConfig(L, WARN_UNSAFE_SCRIPTS, "warnUnsafeScripts", true);
 	loadBoolConfig(L, XP_DISPLAY_MODE, "experienceDisplayRates", true);
 	loadBoolConfig(L, CYCLOPEDIA_HOUSE_AUCTION, "toggleCyclopediaHouseAuction", true);
@@ -338,10 +334,6 @@ bool ConfigManager::load() {
 	loadIntConfig(L, TIBIADROME_CONCOCTION_COOLDOWN, "tibiadromeConcoctionCooldown", 24 * 60 * 60);
 	loadIntConfig(L, TIBIADROME_CONCOCTION_DURATION, "tibiadromeConcoctionDuration", 1 * 60 * 60);
 	loadIntConfig(L, TRANSCENDENCE_AVATAR_DURATION, "transcendenceAvatarDuration", 7000);
-	loadIntConfig(L, VIP_BONUS_EXP, "vipBonusExp", 0);
-	loadIntConfig(L, VIP_BONUS_LOOT, "vipBonusLoot", 0);
-	loadIntConfig(L, VIP_BONUS_SKILL, "vipBonusSkill", 0);
-	loadIntConfig(L, VIP_FAMILIAR_TIME_COOLDOWN_REDUCTION, "vipFamiliarTimeCooldownReduction", 0);
 	loadIntConfig(L, WEEK_KILLS_TO_RED, "weekKillsToRedSkull", 5);
 	loadIntConfig(L, WHEEL_ATELIER_REVEAL_GREATER_COST, "wheelAtelierRevealGreaterCost", 6000000);
 	loadIntConfig(L, WHEEL_ATELIER_REVEAL_LESSER_COST, "wheelAtelierRevealLesserCost", 125000);

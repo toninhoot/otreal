@@ -4521,7 +4521,7 @@ void ProtocolGame::sendBasicData() {
 
 	NetworkMessage msg;
 	msg.addByte(0x9F);
-	if (player->isPremium() || player->isVip()) {
+       if (player->isPremium()) {
 		msg.addByte(1);
 		msg.add<uint32_t>(getTimeNow() + ((player->getPremiumDays() + 1) * 86400));
 	} else {
@@ -4685,16 +4685,16 @@ void ProtocolGame::sendBlessStatus() {
 }
 
 void ProtocolGame::sendPremiumTrigger() {
-	if (g_configManager().getBoolean(FREE_PREMIUM) || g_configManager().getBoolean(VIP_SYSTEM_ENABLED)) {
-		return;
-	}
+       if (g_configManager().getBoolean(FREE_PREMIUM)) {
+               return;
+       }
 
 	NetworkMessage msg;
 	msg.addByte(0x9E);
 
 	msg.addByte(16);
 	for (uint16_t i = 0; i <= 15; i++) {
-		// PREMIUM_TRIGGER_TRAIN_OFFLINE = false, PREMIUM_TRIGGER_XP_BOOST = false, PREMIUM_TRIGGER_MARKET = false, PREMIUM_TRIGGER_VIP_LIST = false, PREMIUM_TRIGGER_DEPOT_SPACE = false, PREMIUM_TRIGGER_INVITE_PRIVCHAT = false
+       // PREMIUM_TRIGGER_TRAIN_OFFLINE = false, PREMIUM_TRIGGER_XP_BOOST = false, PREMIUM_TRIGGER_MARKET = false, PREMIUM_TRIGGER_DEPOT_SPACE = false, PREMIUM_TRIGGER_INVITE_PRIVCHAT = false
 		msg.addByte(0x01);
 	}
 

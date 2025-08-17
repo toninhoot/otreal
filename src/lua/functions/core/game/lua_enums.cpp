@@ -1765,8 +1765,6 @@ void LuaEnums::effectsSoundEnums(lua_State* L) {
 	registerEnumNamespace(L, soundNamespace, SoundEffect_t::ACTION_EAT);
 	registerEnumNamespace(L, soundNamespace, SoundEffect_t::ACTION_STORE_BIG_OBJECT);
 	registerEnumNamespace(L, soundNamespace, SoundEffect_t::ACTION_STORE_WOOD_OBJECT);
-	registerEnumNamespace(L, soundNamespace, SoundEffect_t::ACTION_VIP_LOGOUT);
-	registerEnumNamespace(L, soundNamespace, SoundEffect_t::ACTION_VIP_LOGIN);
 	registerEnumNamespace(L, soundNamespace, SoundEffect_t::ENV_CAT_1);
 	registerEnumNamespace(L, soundNamespace, SoundEffect_t::ENV_INSECT_2);
 	registerEnumNamespace(L, soundNamespace, SoundEffect_t::ENV_SEAGUL_2);

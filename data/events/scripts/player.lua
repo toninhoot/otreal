@@ -574,16 +574,8 @@ function Player:onGainExperience(target, exp, rawExp)
 		end
 	end
 
-	-- VIP Bonus Experience
-	if configManager.getBoolean(configKeys.VIP_SYSTEM_ENABLED) then
-		local vipBonusExp = configManager.getNumber(configKeys.VIP_BONUS_EXP)
-		if vipBonusExp > 0 and self:isVip() then
-			exp = exp * (1 + math.min(vipBonusExp, 100) / 100)
-		end
-	end
-
-	-- Soul War Experience by Taint
-	if SoulWarQuest then
+       -- Soul War Experience by Taint
+       if SoulWarQuest then
 		local monsterType = target:getType()
 		if monsterType and monsterType:getName() and table.contains(SoulWarQuest.bagYouDesireMonsters, monsterType:getName()) then
 			local taintLevel = self:getTaintLevel() or 0
@@ -632,14 +624,8 @@ function Player:onGainSkillTries(skill, tries)
 	local skillRate = getRateFromTable(rateSkillStages, currentSkillLevel, baseRate)
 	skillRate = (SCHEDULE_SKILL_RATE ~= 100) and (skillRate * SCHEDULE_SKILL_RATE / 100) or skillRate
 
-	-- Apply VIP boost if applicable
-	if configManager.getBoolean(configKeys.VIP_SYSTEM_ENABLED) and self:isVip() then
-		local vipBonusSkill = math.min(configManager.getNumber(configKeys.VIP_BONUS_SKILL), 100)
-		skillRate = skillRate + (skillRate * (vipBonusSkill / 100))
-	end
-
-	-- Calculate and return the final experience gain
-	return tries * skillRate
+       -- Calculate and return the final experience gain
+       return tries * skillRate
 end
 
 function Player:onCombat(target, item, primaryDamage, primaryType, secondaryDamage, secondaryType)

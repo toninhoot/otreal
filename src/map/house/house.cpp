@@ -903,18 +903,15 @@ void Houses::payHouses(RentPeriod_t rentPeriod) const {
 		// Player hasn't logged in for a while, reset house owner
 		auto daysToReset = g_configManager().getNumber(HOUSE_LOSE_AFTER_INACTIVITY);
 		if (daysToReset > 0) {
-			auto daysSinceLastLogin = (currentTime - player->getLastLoginSaved()) / (60 * 60 * 24);
-			bool vipKeep = g_configManager().getBoolean(VIP_KEEP_HOUSE) && player->isVip();
-			bool activityKeep = daysSinceLastLogin < daysToReset;
-			if (vipKeep && !activityKeep) {
-				g_logger().info("Player {} has not logged in for {} days, but is a VIP, so the house will not be reset.", player->getName(), daysToReset);
-			} else if (!vipKeep && !activityKeep) {
-				g_logger().info("Player {} has not logged in for {} days, so the house will be reset.", player->getName(), daysToReset);
-				house->setOwner(0, true, player);
-				g_saveManager().savePlayer(player);
-				continue;
-			}
-		}
+                       auto daysSinceLastLogin = (currentTime - player->getLastLoginSaved()) / (60 * 60 * 24);
+                       bool activityKeep = daysSinceLastLogin < daysToReset;
+                       if (!activityKeep) {
+                               g_logger().info("Player {} has not logged in for {} days, so the house will be reset.", player->getName(), daysToReset);
+                               house->setOwner(0, true, player);
+                               g_saveManager().savePlayer(player);
+                               continue;
+                       }
+               }
 
 		const uint32_t rent = house->getRent();
 		if (rent == 0 || house->getPaidUntil() > currentTime) {
