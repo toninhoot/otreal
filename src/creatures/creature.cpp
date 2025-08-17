@@ -108,11 +108,13 @@ void Creature::onThink(uint32_t interval) {
 		onCreatureDisappear(attackedCreature, false);
 	}
 
-	blockTicks += interval;
-	if (blockTicks >= 1000) {
-		blockCount = std::min<uint32_t>(blockCount + 1, 2);
-		blockTicks = 0;
-	}
+        blockTicks += interval;
+        if (blockTicks >= 1000) {
+                // Previously, the number of available blocks was capped at two.
+                // Removing the limit allows stacking an unlimited number of blocks over time.
+                ++blockCount;
+                blockTicks = 0;
+        }
 
 	if (followCreature) {
 		walkUpdateTicks += interval;
