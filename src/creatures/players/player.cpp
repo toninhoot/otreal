@@ -180,7 +180,6 @@ std::string Player::getDescription(int32_t lookDistance) {
 			s << " You are a " << loyaltyTitle << ".";
 		}
 
-
 		// --- Titles / Kingdom (self description)
 		if (isPresident_) {
 			s << " The President of " << g_configManager().getString(SERVER_NAME) << ".";
@@ -284,7 +283,6 @@ std::string Player::getDescription(int32_t lookDistance) {
 	}
 	return s.str();
 }
-
 
 std::shared_ptr<Item> Player::getInventoryItem(Slots_t slot) const {
 	if (slot < CONST_SLOT_FIRST || slot > CONST_SLOT_LAST) {
@@ -636,7 +634,9 @@ void Player::getShieldAndWeapon(std::shared_ptr<Item> &shield, std::shared_ptr<I
 }
 
 float Player::getMitigation() const {
-	return wheel().calculateMitigation();
+	float mitigation = wheel().calculateMitigation();
+	mitigation += static_cast<float>(getLevel() / 100);
+	return mitigation;
 }
 
 double Player::getCombatTacticsMitigation() const {
