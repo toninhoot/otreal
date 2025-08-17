@@ -182,9 +182,9 @@ function Npc:parseBank(message, npc, creature, npcHandler)
   end
 
   -- Deposit money
-  if MsgFind(message, "deposit") then
+  if MsgContains(message, "deposit") then
     local amount = nil
-    if MsgFind(message, "deposit all") then
+    if MsgContains(message, "deposit all") then
       amount = player:getMoney()
     else
       if string.match(message, "%d+") then
