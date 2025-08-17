@@ -43,17 +43,20 @@ void PlayerFunctions::init(lua_State* L) {
 	Lua::registerMethod(L, "Player", "resetCharmsBestiary", PlayerFunctions::luaPlayerResetCharmsMonsters);
 	Lua::registerMethod(L, "Player", "unlockAllCharmRunes", PlayerFunctions::luaPlayerUnlockAllCharmRunes);
 	Lua::registerMethod(L, "Player", "addCharmPoints", PlayerFunctions::luaPlayerAddCharmPoints);
-	Lua::registerMethod(L, "Player", "addMinorCharmEchoes", PlayerFunctions::luaPlayerAddMinorCharmEchoes);
-	Lua::registerMethod(L, "Player", "getCharmTier", PlayerFunctions::luaPlayerGetCharmTier);
-	Lua::registerMethod(L, "Player", "getCharmChance", PlayerFunctions::luaPlayerGetCharmChance);
-	Lua::registerMethod(L, "Player", "resetOldCharms", PlayerFunctions::luaPlayerResetOldCharms);
-	Lua::registerMethod(L, "Player", "isPlayer", PlayerFunctions::luaPlayerIsPlayer);
+        Lua::registerMethod(L, "Player", "addMinorCharmEchoes", PlayerFunctions::luaPlayerAddMinorCharmEchoes);
+        Lua::registerMethod(L, "Player", "getCharmTier", PlayerFunctions::luaPlayerGetCharmTier);
+        Lua::registerMethod(L, "Player", "getCharmChance", PlayerFunctions::luaPlayerGetCharmChance);
+        Lua::registerMethod(L, "Player", "resetOldCharms", PlayerFunctions::luaPlayerResetOldCharms);
+        Lua::registerMethod(L, "Player", "isPlayer", PlayerFunctions::luaPlayerIsPlayer);
+       Lua::registerMethod(L, "Player", "isPresident", PlayerFunctions::luaPlayerIsPresident);
+       Lua::registerMethod(L, "Player", "isGovernor", PlayerFunctions::luaPlayerIsGovernor);
 
-	Lua::registerMethod(L, "Player", "getGuid", PlayerFunctions::luaPlayerGetGuid);
-	Lua::registerMethod(L, "Player", "getIp", PlayerFunctions::luaPlayerGetIp);
-	Lua::registerMethod(L, "Player", "getAccountId", PlayerFunctions::luaPlayerGetAccountId);
-	Lua::registerMethod(L, "Player", "getLastLoginSaved", PlayerFunctions::luaPlayerGetLastLoginSaved);
-	Lua::registerMethod(L, "Player", "getLastLogout", PlayerFunctions::luaPlayerGetLastLogout);
+        Lua::registerMethod(L, "Player", "getGuid", PlayerFunctions::luaPlayerGetGuid);
+        Lua::registerMethod(L, "Player", "getIp", PlayerFunctions::luaPlayerGetIp);
+        Lua::registerMethod(L, "Player", "getAccountId", PlayerFunctions::luaPlayerGetAccountId);
+        Lua::registerMethod(L, "Player", "getLastLoginSaved", PlayerFunctions::luaPlayerGetLastLoginSaved);
+       Lua::registerMethod(L, "Player", "getLastLogout", PlayerFunctions::luaPlayerGetLastLogout);
+       Lua::registerMethod(L, "Player", "getKingdom", PlayerFunctions::luaPlayerGetKingdom);
 
 	Lua::registerMethod(L, "Player", "getAccountType", PlayerFunctions::luaPlayerGetAccountType);
 	Lua::registerMethod(L, "Player", "setAccountType", PlayerFunctions::luaPlayerSetAccountType);
@@ -657,20 +660,34 @@ int PlayerFunctions::luaPlayerAddMinorCharmEchoes(lua_State* L) {
 }
 
 int PlayerFunctions::luaPlayerIsPlayer(lua_State* L) {
-	// player:isPlayer()
-	Lua::pushBoolean(L, Lua::getUserdataShared<Player>(L, 1, "Player") != nullptr);
-	return 1;
+        // player:isPlayer()
+        Lua::pushBoolean(L, Lua::getUserdataShared<Player>(L, 1, "Player") != nullptr);
+        return 1;
+}
+
+int PlayerFunctions::luaPlayerIsPresident(lua_State* L) {
+       // player:isPresident()
+       const auto &player = Lua::getUserdataShared<Player>(L, 1, "Player");
+       Lua::pushBoolean(L, player && player->isPresident());
+       return 1;
+}
+
+int PlayerFunctions::luaPlayerIsGovernor(lua_State* L) {
+       // player:isGovernor()
+       const auto &player = Lua::getUserdataShared<Player>(L, 1, "Player");
+       Lua::pushBoolean(L, player && player->isGovernor());
+       return 1;
 }
 
 int PlayerFunctions::luaPlayerGetGuid(lua_State* L) {
-	// player:getGuid()
-	const auto &player = Lua::getUserdataShared<Player>(L, 1, "Player");
-	if (player) {
-		lua_pushnumber(L, player->getGUID());
-	} else {
-		lua_pushnil(L);
-	}
-	return 1;
+        // player:getGuid()
+        const auto &player = Lua::getUserdataShared<Player>(L, 1, "Player");
+        if (player) {
+                lua_pushnumber(L, player->getGUID());
+        } else {
+                lua_pushnil(L);
+        }
+        return 1;
 }
 
 int PlayerFunctions::luaPlayerGetIp(lua_State* L) {
@@ -709,14 +726,25 @@ int PlayerFunctions::luaPlayerGetLastLoginSaved(lua_State* L) {
 }
 
 int PlayerFunctions::luaPlayerGetLastLogout(lua_State* L) {
-	// player:getLastLogout()
-	const auto &player = Lua::getUserdataShared<Player>(L, 1, "Player");
-	if (player) {
-		lua_pushnumber(L, player->getLastLogout());
-	} else {
-		lua_pushnil(L);
-	}
-	return 1;
+        // player:getLastLogout()
+        const auto &player = Lua::getUserdataShared<Player>(L, 1, "Player");
+        if (player) {
+                lua_pushnumber(L, player->getLastLogout());
+        } else {
+                lua_pushnil(L);
+        }
+        return 1;
+}
+
+int PlayerFunctions::luaPlayerGetKingdom(lua_State* L) {
+       // player:getKingdom()
+       const auto &player = Lua::getUserdataShared<Player>(L, 1, "Player");
+       if (player) {
+               lua_pushnumber(L, static_cast<uint32_t>(player->getKingdom()));
+       } else {
+               lua_pushnil(L);
+       }
+       return 1;
 }
 
 int PlayerFunctions::luaPlayerGetAccountType(lua_State* L) {
