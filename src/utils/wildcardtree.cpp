@@ -39,29 +39,37 @@ std::shared_ptr<WildcardTreeNode> WildcardTreeNode::addChild(char ch, bool break
 }
 
 void WildcardTreeNode::insert(const std::string &str) {
-	auto cur = static_self_cast<WildcardTreeNode>();
+        if (str.empty()) {
+                return;
+        }
 
-	const size_t length = str.length() - 1;
-	for (size_t pos = 0; pos < length; ++pos) {
-		cur = cur->addChild(str[pos], false);
-	}
+        auto cur = static_self_cast<WildcardTreeNode>();
 
-	cur->addChild(str[length], true);
+        const size_t length = str.length();
+        for (size_t pos = 0; pos < length - 1; ++pos) {
+                cur = cur->addChild(str[pos], false);
+        }
+
+        cur->addChild(str[length - 1], true);
 }
 
 void WildcardTreeNode::remove(const std::string &str) {
-	auto cur = static_self_cast<WildcardTreeNode>();
+        if (str.empty()) {
+                return;
+        }
 
-	std::stack<std::shared_ptr<WildcardTreeNode>> path;
-	path.push(cur);
-	size_t len = str.length();
-	for (size_t pos = 0; pos < len; ++pos) {
-		cur = cur->getChild(str[pos]);
-		if (!cur) {
-			return;
-		}
-		path.push(cur);
-	}
+        auto cur = static_self_cast<WildcardTreeNode>();
+
+        std::stack<std::shared_ptr<WildcardTreeNode>> path;
+        path.push(cur);
+        size_t len = str.length();
+        for (size_t pos = 0; pos < len; ++pos) {
+                cur = cur->getChild(str[pos]);
+                if (!cur) {
+                        return;
+                }
+                path.push(cur);
+        }
 
 	cur->breakpoint = false;
 
