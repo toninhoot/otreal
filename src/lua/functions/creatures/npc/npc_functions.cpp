@@ -12,9 +12,69 @@
 #include "creatures/creature.hpp"
 #include "creatures/npcs/npc.hpp"
 #include "creatures/players/player.hpp"
+#include "database/database.hpp"
+#include "fmt/format.h"
 #include "game/game.hpp"
 #include "map/spectators.hpp"
 #include "lua/functions/lua_functions_loader.hpp"
+
+namespace {
+	struct TaxBreakdown {
+		uint64_t tax = 0;
+		uint64_t federal = 0;
+		uint64_t state = 0;
+		uint32_t kingdom = 0;
+	};
+
+	TaxBreakdown computeTax(uint64_t amount, const Player &player) {
+		TaxBreakdown b;
+		b.kingdom = static_cast<uint32_t>(player.getKingdom());
+		if (const auto &res = g_database().storeQuery("SELECT rate FROM economy_tariffs WHERE scope='FEDERAL' LIMIT 1")) {
+			b.federal = (amount * res->getNumber<uint32_t>("rate")) / 100;
+		}
+		if (const auto &res = g_database().storeQuery(fmt::format("SELECT rate FROM economy_tariffs WHERE scope='KINGDOM' AND kingdom_id={} LIMIT 1", b.kingdom))) {
+			b.state = (amount * res->getNumber<uint32_t>("rate")) / 100;
+		}
+		b.tax = b.federal + b.state;
+		return b;
+	}
+
+	void addBankById(uint32_t id, uint64_t amount) {
+		if (amount == 0) {
+			return;
+		}
+		if (const auto &p = g_game().getPlayerByGUID(id)) {
+			p->setBankBalance(p->getBankBalance() + amount);
+		} else {
+			g_database().executeQuery(fmt::format("UPDATE players SET balance = balance + {} WHERE id={}", amount, id));
+		}
+	}
+
+	void distributeTax(const TaxBreakdown &b, const std::shared_ptr<Player> &actor) {
+		const auto actorId = actor ? actor->getGUID() : 0u;
+		uint32_t presId = 0;
+		if (const auto &res = g_database().storeQuery("SELECT id FROM players WHERE is_president=1 LIMIT 1")) {
+			presId = res->getNumber<uint32_t>("id");
+		}
+		if (b.federal > 0 && presId != 0) {
+			if (actorId == presId && actor) {
+				actor->setBankBalance(actor->getBankBalance() + b.federal);
+			} else {
+				addBankById(presId, b.federal);
+			}
+		}
+		if (const auto &res = g_database().storeQuery(fmt::format("SELECT id FROM players WHERE is_governor=1 AND kingdom={} LIMIT 1", b.kingdom))) {
+			uint32_t gid = res->getNumber<uint32_t>("id");
+			if (b.state > 0 && gid != 0 && gid != presId) {
+				if (actorId == gid && actor) {
+					actor->setBankBalance(actor->getBankBalance() + b.state);
+				} else {
+					addBankById(gid, b.state);
+				}
+			}
+		}
+	}
+} // namespace
 
 void NpcFunctions::init(lua_State* L) {
 	Lua::registerSharedClass(L, "Npc", "Creature", NpcFunctions::luaNpcCreate);
@@ -626,29 +686,30 @@ int NpcFunctions::luaNpcSellItem(lua_State* L) {
 	std::stringstream ss;
 	const uint64_t itemCost = itemsPurchased * pricePerUnit;
 	const uint64_t backpackCost = backpacksPurchased * shoppingBagPrice;
+	const uint64_t baseCost = itemCost + backpackCost;
 	if (npc->getCurrency() == ITEM_GOLD_COIN) {
-		if (!g_game().removeMoney(player, itemCost + backpackCost, 0, true)) {
+		auto breakdown = computeTax(baseCost, *player);
+		const uint64_t totalCost = baseCost + breakdown.tax;
+		if (!g_game().removeMoney(player, totalCost, 0, true)) {
 			g_logger().error("[NpcFunctions::luaNpcSellItem (removeMoney)] - Player {} have a problem for buy item {} on shop for npc {}", player->getName(), itemId, npc->getName());
 			g_logger().debug("[Information] Player {} bought {} x item {} on shop for npc {}, at position {}", player->getName(), itemsPurchased, itemId, npc->getName(), player->getPosition().toString());
-		} else if (backpacksPurchased > 0) {
-			ss << "Bought " << std::to_string(itemsPurchased) << "x " << it.name << " and " << std::to_string(backpacksPurchased);
-			if (backpacksPurchased > 1) {
-				ss << " shopping bags for " << std::to_string(itemCost + backpackCost) << " gold coin";
-			} else {
-				ss << " shopping bag for " << std::to_string(itemCost + backpackCost) << " gold coin";
-			}
-			if ((itemCost + backpackCost) > 1) {
-				ss << "s.";
-			} else {
-				ss << ".";
-			}
 		} else {
-			ss << "Bought " << std::to_string(itemsPurchased) << "x " << it.name << " for " << std::to_string(itemCost) << " gold coin";
-			if (itemCost > 1) {
-				ss << "s.";
-			} else {
-				ss << ".";
+			ss << "Bought " << std::to_string(itemsPurchased) << "x " << it.name;
+			if (backpacksPurchased > 0) {
+				ss << " and " << std::to_string(backpacksPurchased) << " shopping bag";
+				if (backpacksPurchased > 1) {
+					ss << "s";
+				}
 			}
+			ss << " for " << std::to_string(totalCost) << " gold coin";
+			if (totalCost > 1) {
+				ss << "s";
+			}
+			if (breakdown.tax > 0) {
+				ss << " (including " << std::to_string(breakdown.tax) << " tax)";
+			}
+			ss << ".";
+			distributeTax(breakdown, player);
 		}
 	} else {
 		if (!g_game().removeMoney(player, backpackCost, 0, true) || !player->removeItemOfType(npc->getCurrency(), itemCost, -1, false)) {

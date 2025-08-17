@@ -123,27 +123,42 @@ local function getPlayerKingdomId(player)
         return k
 end
 
-local function taxBreakdown(amount, player)
-        local kid = getPlayerKingdomId(player)
-        local fedRate, stateRate = 0, 0
-        do
-                local r = db.storeQuery("SELECT rate FROM economy_tariffs WHERE scope='FEDERAL' LIMIT 1")
-                if r then
-                        fedRate = result.getNumber(r, "rate") or 0
-                        result.free(r)
-                end
+-- Helper: tenta runtime primeiro, cai pro DB se precisar
+local function resolveKingdomId(player)
+    if player and type(player) == "userdata" and player.getKingdom then
+        local k = player:getKingdom()
+        if k and k > 0 then
+            return k
         end
-        do
-                local r = db.storeQuery(string.format("SELECT rate FROM economy_tariffs WHERE scope='KINGDOM' AND kingdom_id=%d LIMIT 1", kid))
-                if r then
-                        stateRate = result.getNumber(r, "rate") or 0
-                        result.free(r)
-                end
-        end
-        local fed = math.floor(amount * fedRate / 100)
-        local state = math.floor(amount * stateRate / 100)
-        return { tax = fed + state, fed = fed, state = state, kid = kid }
+    end
+    return getPlayerKingdomId(player)
 end
+
+-- Substitui seu taxBreakdown
+local function taxBreakdown(amount, player)
+    local kid = resolveKingdomId(player)
+
+    local fedRate, stateRate = 0, 0
+    do
+        local r = db.storeQuery("SELECT rate FROM economy_tariffs WHERE scope='FEDERAL' LIMIT 1")
+        if r then
+            fedRate = result.getNumber(r, "rate") or 0
+            result.free(r)
+        end
+    end
+    do
+        local r = db.storeQuery(string.format("SELECT rate FROM economy_tariffs WHERE scope='KINGDOM' AND kingdom_id=%d LIMIT 1", kid))
+        if r then
+            stateRate = result.getNumber(r, "rate") or 0
+            result.free(r)
+        end
+    end
+
+    local fed = math.floor(amount * fedRate / 100)
+    local state = math.floor(amount * stateRate / 100)
+    return { tax = fed + state, fed = fed, state = state, kid = kid }
+end
+
 
 local function addBankById(id, delta)
         if delta == 0 then
