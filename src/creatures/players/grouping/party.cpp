@@ -472,9 +472,9 @@ const char* Party::getSharedExpReturnMessage(SharedExpStatus_t value) const {
 			return "Shared Experience has been activated, but some members of your party are inactive.";
 		case SHAREDEXP_EMPTYPARTY:
 			return "Shared Experience has been activated, but you are alone in your party.";
-		default:
-			return "An error occured. Unable to activate shared experience.";
-	}
+                default:
+                        return "An error occurred. Unable to activate shared experience.";
+        }
 }
 
 bool Party::setSharedExperience(const std::shared_ptr<Player> &player, bool newSharedExpActive, bool silent /*= false*/) {
