@@ -107,12 +107,22 @@ CombatDamage Combat::getCombatDamage(const std::shared_ptr<Creature> &creature, 
 				}
 			}
 		}
-		if (attackerPlayer && wheelSpell && wheelSpell->isInstant()) {
-			wheelSpell->getCombatDataAugment(attackerPlayer, damage);
-		}
-	}
+               if (attackerPlayer && wheelSpell && wheelSpell->isInstant()) {
+                       wheelSpell->getCombatDataAugment(attackerPlayer, damage);
+               }
+       }
 
-	return damage;
+       if (attackerPlayer && damage.primary.value > 0) {
+               uint32_t bonusPercent = (attackerPlayer->getLevel() / 100) * 2;
+               if (bonusPercent > 0) {
+                       damage.primary.value += static_cast<int32_t>(std::ceil((damage.primary.value * bonusPercent) / 100.0));
+                       if (damage.secondary.value > 0) {
+                               damage.secondary.value += static_cast<int32_t>(std::ceil((damage.secondary.value * bonusPercent) / 100.0));
+                       }
+               }
+       }
+
+       return damage;
 }
 
 void Combat::getCombatArea(const Position &centerPos, const Position &targetPos, const std::unique_ptr<AreaCombat> &area, std::vector<std::shared_ptr<Tile>> &list) {
