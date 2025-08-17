@@ -5,19 +5,21 @@ function talkaction.onSay(player, words, param)
         player:sendCancelMessage("Only the president can set the federal tax.")
         return false
     end
+
     local rate = tonumber(param)
     if not rate then
         player:sendCancelMessage("Usage: /federaltax <0-15>")
         return false
     end
-    rate = math.floor(rate)
-    if rate < 0 then
-        rate = 0
-    elseif rate > 15 then
-        rate = 15
-    end
-    db.query(string.format("UPDATE economy_tariffs SET rate=%d, set_by=%d, updated_at=NOW() WHERE scope='FEDERAL'", rate, player:getGuid()))
-    player:sendTextMessage(MESSAGE_INFO_DESCR, string.format("Federal tax set to %d%%.", rate))
+
+    rate = math.max(0, math.min(15, math.floor(rate)))
+    db.query(string.format(
+        "UPDATE economy_tariffs SET rate=%d, set_by=%d, updated_at=NOW() WHERE scope='FEDERAL'",
+        rate, player:getGuid())
+    )
+
+    -- igual ao exemplo do VIP: mensagem verde segura
+    player:sendTextMessage(MESSAGE_EVENT_ADVANCE, string.format("Federal tax set to %d%%.", rate))
     return false
 end
 

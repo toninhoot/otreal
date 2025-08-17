@@ -5,20 +5,23 @@ function talkaction.onSay(player, words, param)
         player:sendCancelMessage("Only a governor can set the state tax.")
         return false
     end
+
     local rate = tonumber(param)
     if not rate then
         player:sendCancelMessage("Usage: /statetax <0-10>")
         return false
     end
-    rate = math.floor(rate)
-    if rate < 0 then
-        rate = 0
-    elseif rate > 10 then
-        rate = 10
-    end
+
+    rate = math.max(0, math.min(10, math.floor(rate)))
     local kingdom = player:getKingdom()
-    db.query(string.format("UPDATE economy_tariffs SET rate=%d, set_by=%d, updated_at=NOW() WHERE scope='KINGDOM' AND kingdom_id=%d", rate, player:getGuid(), kingdom))
-    player:sendTextMessage(MESSAGE_INFO_DESCR, string.format("State tax set to %d%%.", rate))
+
+    db.query(string.format(
+        "UPDATE economy_tariffs SET rate=%d, set_by=%d, updated_at=NOW() WHERE scope='KINGDOM' AND kingdom_id=%d",
+        rate, player:getGuid(), kingdom
+    ))
+
+    -- mensagem verde padrão, segura
+    player:sendTextMessage(MESSAGE_EVENT_ADVANCE, string.format("State tax set to %d%%.", rate))
     return false
 end
 
