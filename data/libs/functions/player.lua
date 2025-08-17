@@ -110,36 +110,147 @@ function Player.transferMoneyTo(self, target, amount)
 end
 
 function Player.withdrawMoney(self, amount)
-	return Bank.withdraw(self, amount)
+        return Bank.withdraw(self, amount)
+end
+
+local function getPlayerKingdomId(player)
+        local r = db.storeQuery(string.format("SELECT kingdom FROM players WHERE id=%d", player:getGuid()))
+        if not r then
+                return 0
+        end
+        local k = result.getNumber(r, "kingdom") or 0
+        result.free(r)
+        return k
+end
+
+if not Player.getKingdom then
+        function Player.getKingdom(self)
+                return getPlayerKingdomId(self)
+        end
+end
+
+if not Player.isPresident then
+        function Player.isPresident(self)
+                local r = db.storeQuery(string.format("SELECT is_president FROM players WHERE id=%d", self:getGuid()))
+                if not r then
+                        return false
+                end
+                local v = result.getNumber(r, "is_president") or 0
+                result.free(r)
+                return v == 1
+        end
+end
+
+if not Player.isGovernor then
+        function Player.isGovernor(self)
+                local r = db.storeQuery(string.format("SELECT is_governor FROM players WHERE id=%d", self:getGuid()))
+                if not r then
+                        return false
+                end
+                local v = result.getNumber(r, "is_governor") or 0
+                result.free(r)
+                return v == 1
+        end
+end
+
+local function taxBreakdown(amount, player)
+        local kid = getPlayerKingdomId(player)
+        local fedRate, stateRate = 0, 0
+        do
+                local r = db.storeQuery("SELECT rate FROM economy_tariffs WHERE scope='FEDERAL' LIMIT 1")
+                if r then
+                        fedRate = result.getNumber(r, "rate") or 0
+                        result.free(r)
+                end
+        end
+        do
+                local r = db.storeQuery(string.format("SELECT rate FROM economy_tariffs WHERE scope='KINGDOM' AND kingdom_id=%d LIMIT 1", kid))
+                if r then
+                        stateRate = result.getNumber(r, "rate") or 0
+                        result.free(r)
+                end
+        end
+        local fed = math.floor(amount * fedRate / 100)
+        local state = math.floor(amount * stateRate / 100)
+        return { tax = fed + state, fed = fed, state = state, kid = kid }
+end
+
+local function addBankById(id, delta)
+        if delta == 0 then
+                return
+        end
+        local tgt = Game.getPlayerByGUID(id)
+        if tgt then
+                tgt:setBankBalance(tgt:getBankBalance() + delta)
+        else
+                db.query(string.format("UPDATE players SET balance = balance + %d WHERE id=%d", delta, id))
+        end
+end
+
+local function distributeTax(b, actor)
+        local actorId = actor and actor:getGuid() or 0
+        local pres = db.storeQuery("SELECT id FROM players WHERE is_president=1 LIMIT 1")
+        local presId = 0
+        if pres then
+                presId = result.getNumber(pres, "id") or 0
+                result.free(pres)
+                if b.fed > 0 and presId ~= 0 then
+                        if actorId == presId then
+                                actor:setBankBalance(actor:getBankBalance() + b.fed)
+                        else
+                                addBankById(presId, b.fed)
+                        end
+                end
+        end
+        local gov = db.storeQuery(string.format("SELECT id FROM players WHERE is_governor=1 AND kingdom=%d LIMIT 1", b.kid))
+        if gov then
+                local gid = result.getNumber(gov, "id") or 0
+                result.free(gov)
+                if b.state > 0 and gid ~= 0 and gid ~= presId then
+                        if actorId == gid then
+                                actor:setBankBalance(actor:getBankBalance() + b.state)
+                        else
+                                addBankById(gid, b.state)
+                        end
+                end
+        end
 end
 
 function Player.removeMoneyBank(self, amount)
-	local inventoryMoney = self:getMoney()
-	local bankBalance = self:getBankBalance()
+        local taxes = taxBreakdown(amount, self)
+        local total = amount + taxes.tax
+        local inventoryMoney = self:getMoney()
+        local bankBalance = self:getBankBalance()
 
-	if amount <= inventoryMoney then
-		self:removeMoney(amount)
-		if amount > 0 then
-			self:sendTextMessage(MESSAGE_TRADE, ("Paid %d gold from inventory."):format(amount))
-		end
-		return true
-	end
+        if total <= inventoryMoney then
+                self:removeMoney(total)
+                if taxes.tax > 0 then
+                        distributeTax(taxes, self)
+                end
+                if total > 0 then
+                        self:sendTextMessage(MESSAGE_TRADE, ("Paid %d gold from inventory (including %d tax)."):format(total, taxes.tax))
+                end
+                return true
+        end
 
-	if amount <= (inventoryMoney + bankBalance) then
-		local remainingAmount = amount
+        if total <= (inventoryMoney + bankBalance) then
+                local remaining = total
 
-		if inventoryMoney > 0 then
-			self:removeMoney(inventoryMoney)
-			remainingAmount = remainingAmount - inventoryMoney
-		end
+                if inventoryMoney > 0 then
+                        self:removeMoney(inventoryMoney)
+                        remaining = remaining - inventoryMoney
+                end
 
-		Bank.debit(self, remainingAmount)
+                Bank.debit(self, remaining)
 
-		self:setBankBalance(bankBalance - remainingAmount)
-		self:sendTextMessage(MESSAGE_TRADE, ("Paid %s from inventory and %s gold from bank account. Your account balance is now %s gold."):format(FormatNumber(amount - remainingAmount), FormatNumber(remainingAmount), FormatNumber(self:getBankBalance())))
-		return true
-	end
-	return false
+                self:setBankBalance(bankBalance - remaining)
+                if taxes.tax > 0 then
+                        distributeTax(taxes, self)
+                end
+                self:sendTextMessage(MESSAGE_TRADE, ("Paid %s from inventory and %s gold from bank account (including %d tax). Your account balance is now %s gold."):format(FormatNumber(total - remaining), FormatNumber(remaining), taxes.tax, FormatNumber(self:getBankBalance())))
+                return true
+        end
+        return false
 end
 
 function Player.hasRookgaardShield(self)
