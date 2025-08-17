@@ -145,18 +145,58 @@ void Player::setID() {
 
 // helper on top of player.cpp (outside class)
 static inline const char* kingdomName(Kingdom k) {
-	switch (k) {
-		case Kingdom::North:
-			return "Kingdom of the North";
-		case Kingdom::West:
-			return "Kingdom of the West";
-		case Kingdom::South:
-			return "Kingdom of the South";
-		case Kingdom::East:
-			return "Kingdom of the East";
-		default:
-			return nullptr;
-	}
+        switch (k) {
+                case Kingdom::North:
+                        return "Kingdom of the North";
+                case Kingdom::West:
+                        return "Kingdom of the West";
+                case Kingdom::South:
+                        return "Kingdom of the South";
+                case Kingdom::East:
+                        return "Kingdom of the East";
+                default:
+                        return nullptr;
+        }
+}
+
+static inline Kingdom kingdomFromTownId(uint32_t townId) {
+        switch (townId) {
+                // North
+                case 5:  // Ab'Dendriel
+                case 6:  // Carlin
+                case 7:  // Kazordoon
+                case 16: // Svargrond
+                case 17: // Yalahar
+                case 18: // Gray Beach
+                case 26: // Feyrist
+                        return Kingdom::North;
+
+                // West
+                case 8:  // Thais
+                case 11: // Edron
+                case 14: // Liberty Bay
+                case 15: // Port Hope
+                        return Kingdom::West;
+
+                // South
+                case 13: // Darashia
+                case 10: // Ankrahmun
+                case 12: // Farmine
+                case 21: // Roshamuul
+                case 20: // Rathleton
+                case 22: // Issavi
+                        return Kingdom::South;
+
+                // East
+                case 9:  // Venore
+                case 19: // Krailos
+                case 25: // Bounac
+                case 24: // Cobra Bastion
+                        return Kingdom::East;
+
+                default:
+                        return Kingdom::None;
+        }
 }
 
 std::string Player::getDescription(int32_t lookDistance) {
@@ -7706,7 +7746,10 @@ std::shared_ptr<Town> Player::getTown() const {
 	return town;
 }
 void Player::setTown(const std::shared_ptr<Town> &newTown) {
-	this->town = newTown;
+        this->town = newTown;
+        if (newTown) {
+                setKingdom(static_cast<uint8_t>(kingdomFromTownId(newTown->getId())));
+        }
 }
 
 bool Player::hasModalWindowOpen(uint32_t modalWindowId) const {
