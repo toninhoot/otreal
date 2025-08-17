@@ -100,7 +100,16 @@ void Connection::closeSocket() {
 		}
 	} catch (const std::system_error &e) {
 		g_logger().error("[Connection::closeSocket] - error closeSocket: {}", e.what());
-	}
+        }
+}
+
+void Connection::setSocketOptions() {
+        try {
+                socket.set_option(asio::ip::tcp::no_delay(true));
+                socket.set_option(asio::socket_base::keep_alive(true));
+        } catch (const std::system_error &e) {
+                g_logger().warn("[Connection::setSocketOptions] - Failed to set socket options: {}", e.what());
+        }
 }
 
 void Connection::accept(Protocol_ptr protocolPtr) {
