@@ -29,14 +29,17 @@ class PlayerFunctions {
 	static int luaPlayerAddMinorCharmEchoes(lua_State* L);
 	static int luaPlayerGetCharmTier(lua_State* L);
 	static int luaPlayerGetCharmChance(lua_State* L);
-	static int luaPlayerResetOldCharms(lua_State* L);
-	static int luaPlayerIsPlayer(lua_State* L);
+        static int luaPlayerResetOldCharms(lua_State* L);
+        static int luaPlayerIsPlayer(lua_State* L);
+       static int luaPlayerIsPresident(lua_State* L);
+       static int luaPlayerIsGovernor(lua_State* L);
 
-	static int luaPlayerGetGuid(lua_State* L);
-	static int luaPlayerGetIp(lua_State* L);
-	static int luaPlayerGetAccountId(lua_State* L);
-	static int luaPlayerGetLastLoginSaved(lua_State* L);
-	static int luaPlayerGetLastLogout(lua_State* L);
+        static int luaPlayerGetGuid(lua_State* L);
+        static int luaPlayerGetIp(lua_State* L);
+        static int luaPlayerGetAccountId(lua_State* L);
+        static int luaPlayerGetLastLoginSaved(lua_State* L);
+        static int luaPlayerGetLastLogout(lua_State* L);
+       static int luaPlayerGetKingdom(lua_State* L);
 
 	static int luaPlayerGetAccountType(lua_State* L);
 	static int luaPlayerSetAccountType(lua_State* L);
