@@ -6070,7 +6070,7 @@ void Player::onAttackedCreature(const std::shared_ptr<Creature> &target) {
 				sendIcons();
 			}
 
-			if (!Combat::isInPvpZone(static_self_cast<Player>(), targetPlayer) && !isInWar(targetPlayer)) {
+			if (!Combat::isInPvpZone(static_self_cast<Player>(), targetPlayer) && !isInWar(targetPlayer) && getKingdom() == targetPlayer->getKingdom()) {
 				addAttacked(targetPlayer);
 
 				if (targetPlayer->getSkull() == SKULL_NONE && getSkull() == SKULL_NONE && !targetPlayer->hasKilled(static_self_cast<Player>())) {
@@ -6159,7 +6159,7 @@ bool Player::onKilledPlayer(const std::shared_ptr<Player> &target, bool lastHit)
 						break;
 					}
 				}
-			} else if (target->getSkull() == SKULL_NONE && !isInWar(target)) {
+			} else if (target->getSkull() == SKULL_NONE && !isInWar(target) && getKingdom() == target->getKingdom()) {
 				unjustified = true;
 				addUnjustifiedDead(target);
 			}
