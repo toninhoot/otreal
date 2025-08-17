@@ -3,6 +3,8 @@
 local Cfg = {
   enabled = true,
 
+  vacancyWeekday = 1, -- 1 = domingo (os.date().wday)
+
   -- agenda semanal
   -- sábado abre candidaturas, domingo abre/fecha votação
   day6CandidacyHour = 12,
@@ -138,7 +140,7 @@ local cand = GlobalEvent("elections_open_candidacy")
 function cand.onTime()
   if not Cfg.enabled then return true end
   local w = os.date("*t")
-  if w.wday == 6 then -- sábado
+  if w.wday == 7 then -- sábado
     return actionOpenCandidacy()
   end
   return true
@@ -151,7 +153,7 @@ local voteOpen = GlobalEvent("elections_open_voting")
 function voteOpen.onTime()
   if not Cfg.enabled then return true end
   local w = os.date("*t")
-  if w.wday == 7 then -- domingo
+  if w.wday == 1 then -- domingo
     return actionOpenVoting()
   end
   return true
@@ -164,7 +166,7 @@ local voteClose = GlobalEvent("elections_close_voting")
 function voteClose.onTime()
   if not Cfg.enabled then return true end
   local w = os.date("*t")
-  if w.wday == 7 then -- domingo
+  if w.wday == 1 then -- domingo
     return actionCloseVotingAndAppoint()
   end
   return true
