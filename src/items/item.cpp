@@ -33,6 +33,26 @@
 
 Items Item::items;
 
+static uint8_t rollItemLevel() {
+	uint8_t chance = uniform_random(1, 100);
+	if (chance <= 25) {
+		return uniform_random(1, 10);
+	} else if (chance <= 47) {
+		return uniform_random(11, 28);
+	} else if (chance <= 65) {
+		return uniform_random(29, 45);
+	} else if (chance <= 79) {
+		return uniform_random(46, 65);
+	} else if (chance <= 89) {
+		return uniform_random(66, 80);
+	} else if (chance <= 95) {
+		return uniform_random(81, 90);
+	} else if (chance <= 98) {
+		return uniform_random(91, 99);
+	}
+	return 100;
+}
+
 std::shared_ptr<Item> Item::createItemBatch(uint16_t itemId, uint32_t count, bool wrappable /* = false*/) {
 	const auto &item = Item::CreateItem(itemId, count, nullptr, wrappable, true);
 	return item;
@@ -109,7 +129,7 @@ std::shared_ptr<Item> Item::CreateItem(const uint16_t type, uint16_t count /*= 0
 	}
 	if (newItem) {
 		if (it.isHelmet() || it.isArmor() || it.isLegs() || it.isBoots() || it.isShield() || it.isSpellBook() || it.isWeapon()) {
-			newItem->setAttribute(ItemAttribute_t::ILVL, uniform_random(1, 100));
+			newItem->setAttribute(ItemAttribute_t::ILVL, rollItemLevel());
 		}
 	}
 	return newItem;
