@@ -58,7 +58,8 @@ end
 -- if online, use API (safe in memory); if offline, SQL.
 local function addBankByIdOrSQL(playerId, playerName, delta)
   if delta == 0 then return end
-  local tgt = (Game.getPlayerByGUID and Game.getPlayerByGUID(playerId)) or Game.getPlayerByName(playerName)
+  -- Player(name/guid) works for both online targets by id or name; fallback to SQL otherwise
+  local tgt = Player(playerId) or (playerName and Player(playerName))
   if tgt then
     tgt:setBankBalance(tgt:getBankBalance() + delta)
   else
