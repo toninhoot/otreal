@@ -7748,7 +7748,7 @@ std::shared_ptr<Town> Player::getTown() const {
 void Player::setTown(const std::shared_ptr<Town> &newTown) {
         this->town = newTown;
         if (newTown) {
-                setKingdom(static_cast<uint8_t>(kingdomFromTownId(newTown->getId())));
+                setKingdom(static_cast<uint8_t>(kingdomFromTownId(newTown->getID())));
         }
 }
 
