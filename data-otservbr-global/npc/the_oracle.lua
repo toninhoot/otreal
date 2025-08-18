@@ -51,7 +51,8 @@ local config = {
 	towns = {
 		["venore"] = TOWNS_LIST.VENORE,
 		["thais"] = TOWNS_LIST.THAIS,
-		["carlin"] = TOWNS_LIST.CARLIN,
+		["darashia"] = TOWNS_LIST.DARASHIA,
+		["ab'dendriel"] = TOWNS_LIST.AB_DENDRIEL,
 	},
 	vocations = {
 		["sorcerer"] = {
