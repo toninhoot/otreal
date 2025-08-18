@@ -173,7 +173,7 @@ local function addBankById(id, delta)
         if delta == 0 then
                 return
         end
-        local tgt = Game.getPlayerByGUID(id)
+        local tgt = Player(id)
         if tgt then
                 tgt:setBankBalance(tgt:getBankBalance() + delta)
         else
