@@ -2200,6 +2200,7 @@ std::string Item::parseItemLevelDescription(const std::shared_ptr<Item> &item) {
 	}
 	const ItemType &it = Item::items[item->getID()];
 	if ((it.isHelmet() || it.isArmor() || it.isLegs() || it.isBoots() || it.isShield() || it.isSpellBook() || it.isWeapon()) && item->hasAttribute(ItemAttribute_t::ILVL)) {
+
 		return fmt::format("\nilvl: {}", item->getItemLevel());
 	}
 	return "";
