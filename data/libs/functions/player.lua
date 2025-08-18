@@ -114,7 +114,16 @@ function Player.withdrawMoney(self, amount)
 end
 
 local function getPlayerKingdomId(player)
-        local r = db.storeQuery(string.format("SELECT kingdom FROM players WHERE id=%d", player:getGuid()))
+        local pid
+        if type(player) == "number" then
+                pid = player
+        elseif type(player) == "userdata" and player.getGuid then
+                pid = player:getGuid()
+        else
+                return 0
+        end
+
+        local r = db.storeQuery(string.format("SELECT kingdom FROM players WHERE id=%d", pid))
         if not r then
                 return 0
         end
