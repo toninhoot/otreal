@@ -65,7 +65,6 @@ MuteCountMap Player::muteCountMap;
 namespace {
 	struct ItemLevelBonusEntry {
 		uint16_t min;
-		uint16_t max;
 		enum class Type {
 			HP_PERCENT,
 			MANA_PERCENT,
@@ -80,14 +79,14 @@ namespace {
 	};
 
 	const std::vector<ItemLevelBonusEntry> itemLevelBonusTable {
-		{ 6, 60, ItemLevelBonusEntry::Type::HP_PERCENT, 2 },
-		{ 61, 120, ItemLevelBonusEntry::Type::MANA_PERCENT, 5 },
-		{ 121, 230, ItemLevelBonusEntry::Type::CAPACITY_FLAT, 600 },
-		{ 231, 350, ItemLevelBonusEntry::Type::SPEED_FLAT, 100 },
-		{ 351, 470, ItemLevelBonusEntry::Type::CRIT_CHANCE, 5 },
-		{ 471, 560, ItemLevelBonusEntry::Type::CRIT_DAMAGE, 5 },
-		{ 561, 599, ItemLevelBonusEntry::Type::DODGE, 3 },
-		{ 600, 600, ItemLevelBonusEntry::Type::FATAL, 5 },
+		{ 6, ItemLevelBonusEntry::Type::HP_PERCENT, 2 },
+		{ 61, ItemLevelBonusEntry::Type::MANA_PERCENT, 5 },
+		{ 121, ItemLevelBonusEntry::Type::CAPACITY_FLAT, 600 },
+		{ 231, ItemLevelBonusEntry::Type::SPEED_FLAT, 100 },
+		{ 351, ItemLevelBonusEntry::Type::CRIT_CHANCE, 5 },
+		{ 471, ItemLevelBonusEntry::Type::CRIT_DAMAGE, 5 },
+		{ 561, ItemLevelBonusEntry::Type::DODGE, 3 },
+		{ 600, ItemLevelBonusEntry::Type::FATAL, 5 },
 	};
 } // namespace
 
@@ -298,6 +297,13 @@ std::string Player::getDescription(int32_t lookDistance) {
 				s << " " << subjectPronoun << " " << getSubjectVerb() << " a subject of the " << k << ".";
 			}
 		}
+	}
+
+	if (lookDistance == -1) {
+		s << " Your total item level is " << getTotalItemLevel() << '.';
+	} else {
+		s << " " << subjectPronoun << " " << getSubjectVerb() << " a total item level of "
+		  << getTotalItemLevel() << '.';
 	}
 
 	if (m_party) {
@@ -5669,7 +5675,7 @@ void Player::updateItemLevelBonuses() {
 	double newFatal = 0.0;
 
 	for (const auto &entry : itemLevelBonusTable) {
-		if (total < entry.min || total > entry.max) {
+		if (total < entry.min) {
 			continue;
 		}
 
