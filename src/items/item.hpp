@@ -294,6 +294,7 @@ public:
 	static std::string parseShowDuration(const std::shared_ptr<Item> &item);
 	static std::string parseShowAttributesDescription(const std::shared_ptr<Item> &item, uint16_t itemId);
 	static std::string parseClassificationDescription(const std::shared_ptr<Item> &item);
+	static std::string parseItemLevelDescription(const std::shared_ptr<Item> &item);
 	static std::string getTierEffectDescription(const std::shared_ptr<Item> &item);
 
 	static std::vector<std::pair<std::string, std::string>> getDescriptions(const ItemType &it, const std::shared_ptr<Item> &item = nullptr);
@@ -711,6 +712,8 @@ public:
 
 	uint8_t getTier() const;
 	void setTier(uint8_t tier);
+	uint8_t getItemLevel() const;
+	void setItemLevel(uint8_t level);
 	uint8_t getClassification() const {
 		return items[id].upgradeClassification;
 	}

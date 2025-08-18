@@ -27,6 +27,7 @@
 #include "items/trashholder.hpp"
 #include "lua/creature/actions.hpp"
 #include "map/house/house.hpp"
+#include "utils/tools.hpp"
 
 #define ITEM_IMBUEMENT_SLOT 500
 
@@ -106,7 +107,11 @@ std::shared_ptr<Item> Item::CreateItem(const uint16_t type, uint16_t count /*= 0
 	} else {
 		g_logger().warn("[Item::CreateItem] Item with id '{}' is not registered and cannot be created.", type);
 	}
-
+	if (newItem) {
+		if (it.isHelmet() || it.isArmor() || it.isLegs() || it.isBoots() || it.isShield() || it.isSpellBook() || it.isWeapon()) {
+			newItem->setAttribute(ItemAttribute_t::ILVL, uniform_random(1, 100));
+		}
+	}
 	return newItem;
 }
 
@@ -254,6 +259,17 @@ void Item::setTier(uint8_t tier) {
 	if (items[id].upgradeClassification) {
 		setAttribute(ItemAttribute_t::TIER, tier);
 	}
+}
+
+uint8_t Item::getItemLevel() const {
+	if (!hasAttribute(ItemAttribute_t::ILVL)) {
+		return 0;
+	}
+	return getAttribute<uint8_t>(ItemAttribute_t::ILVL);
+}
+
+void Item::setItemLevel(uint8_t level) {
+	setAttribute(ItemAttribute_t::ILVL, level);
 }
 
 std::shared_ptr<Container> Item::CreateItemAsContainer(const uint16_t type, uint16_t size) {
@@ -959,6 +975,15 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream &propStream) {
 			setAttribute(ItemAttribute_t::OBTAINCONTAINER, flags);
 			break;
 		}
+		case ATTR_ILVL: {
+			uint8_t level;
+			if (!propStream.read<uint8_t>(level)) {
+				return ATTR_READ_ERROR;
+			}
+
+			setAttribute(ItemAttribute_t::ILVL, level);
+			break;
+		}
 		default:
 			return ATTR_READ_ERROR;
 	}
@@ -1148,6 +1173,10 @@ void Item::serializeAttr(PropWriteStream &propWriteStream) const {
 		auto flags = getAttribute<uint32_t>(ItemAttribute_t::OBTAINCONTAINER);
 		g_logger().debug("Reading flag {}, to item id {}", flags, getID());
 		propWriteStream.write<uint32_t>(flags);
+	}
+	if (hasAttribute(ItemAttribute_t::ILVL)) {
+		propWriteStream.write<uint8_t>(ATTR_ILVL);
+		propWriteStream.write<uint8_t>(getAttribute<uint8_t>(ItemAttribute_t::ILVL));
 	}
 }
 
@@ -2161,6 +2190,17 @@ SoundEffect_t Item::getMovementSound(const std::shared_ptr<Cylinder> &toCylinder
 std::string Item::parseClassificationDescription(const std::shared_ptr<Item> &item) {
 	if (item && item->getClassification() >= 1) {
 		return fmt::format("\nClassification: {} Tier: {}", item->getClassification(), getTierEffectDescription(item));
+	}
+	return "";
+}
+
+std::string Item::parseItemLevelDescription(const std::shared_ptr<Item> &item) {
+	if (!item) {
+		return "";
+	}
+	const ItemType &it = Item::items[item->getID()];
+	if ((it.isHelmet() || it.isArmor() || it.isLegs() || it.isBoots() || it.isShield() || it.isSpellBook() || it.isWeapon()) && item->hasAttribute(ItemAttribute_t::ILVL)) {
+		return fmt::format("\nilvl: {}", item->getItemLevel());
 	}
 	return "";
 }
@@ -3233,6 +3273,7 @@ std::string Item::getDescription(const ItemType &it, int32_t lookDistance, const
 	s << parseImbuementDescription(item);
 
 	s << parseClassificationDescription(item);
+	s << parseItemLevelDescription(item);
 
 	if (lookDistance <= 1) {
 		if (item) {
