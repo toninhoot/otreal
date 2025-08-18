@@ -62,6 +62,35 @@
 
 MuteCountMap Player::muteCountMap;
 
+namespace {
+	struct ItemLevelBonusEntry {
+		uint16_t min;
+		uint16_t max;
+		enum class Type {
+			HP_PERCENT,
+			MANA_PERCENT,
+			CAPACITY_FLAT,
+			SPEED_FLAT,
+			CRIT_CHANCE,
+			CRIT_DAMAGE,
+			DODGE,
+			FATAL,
+		} type;
+		int32_t value;
+	};
+
+	const std::vector<ItemLevelBonusEntry> itemLevelBonusTable {
+		{ 6, 60, ItemLevelBonusEntry::Type::HP_PERCENT, 2 },
+		{ 61, 120, ItemLevelBonusEntry::Type::MANA_PERCENT, 5 },
+		{ 121, 230, ItemLevelBonusEntry::Type::CAPACITY_FLAT, 600 },
+		{ 231, 350, ItemLevelBonusEntry::Type::SPEED_FLAT, 100 },
+		{ 351, 470, ItemLevelBonusEntry::Type::CRIT_CHANCE, 5 },
+		{ 471, 560, ItemLevelBonusEntry::Type::CRIT_DAMAGE, 5 },
+		{ 561, 599, ItemLevelBonusEntry::Type::DODGE, 3 },
+		{ 600, 600, ItemLevelBonusEntry::Type::FATAL, 5 },
+	};
+} // namespace
+
 Player::Player(std::shared_ptr<ProtocolGame> p) :
 	lastPing(OTSYS_TIME()),
 	lastPong(lastPing),
@@ -145,58 +174,58 @@ void Player::setID() {
 
 // helper on top of player.cpp (outside class)
 static inline const char* kingdomName(Kingdom k) {
-        switch (k) {
-                case Kingdom::North:
-                        return "Kingdom of the North";
-                case Kingdom::West:
-                        return "Kingdom of the West";
-                case Kingdom::South:
-                        return "Kingdom of the South";
-                case Kingdom::East:
-                        return "Kingdom of the East";
-                default:
-                        return nullptr;
-        }
+	switch (k) {
+		case Kingdom::North:
+			return "Kingdom of the North";
+		case Kingdom::West:
+			return "Kingdom of the West";
+		case Kingdom::South:
+			return "Kingdom of the South";
+		case Kingdom::East:
+			return "Kingdom of the East";
+		default:
+			return nullptr;
+	}
 }
 
 static inline Kingdom kingdomFromTownId(uint32_t townId) {
-        switch (townId) {
-                // North
-                case 5:  // Ab'Dendriel
-                case 6:  // Carlin
-                case 7:  // Kazordoon
-                case 16: // Svargrond
-                case 17: // Yalahar
-                case 18: // Gray Beach
-                case 26: // Feyrist
-                        return Kingdom::North;
+	switch (townId) {
+		// North
+		case 5: // Ab'Dendriel
+		case 6: // Carlin
+		case 7: // Kazordoon
+		case 16: // Svargrond
+		case 17: // Yalahar
+		case 18: // Gray Beach
+		case 26: // Feyrist
+			return Kingdom::North;
 
-                // West
-                case 8:  // Thais
-                case 11: // Edron
-                case 14: // Liberty Bay
-                case 15: // Port Hope
-                        return Kingdom::West;
+		// West
+		case 8: // Thais
+		case 11: // Edron
+		case 14: // Liberty Bay
+		case 15: // Port Hope
+			return Kingdom::West;
 
-                // South
-                case 13: // Darashia
-                case 10: // Ankrahmun
-                case 12: // Farmine
-                case 21: // Roshamuul
-                case 20: // Rathleton
-                case 22: // Issavi
-                        return Kingdom::South;
+		// South
+		case 13: // Darashia
+		case 10: // Ankrahmun
+		case 12: // Farmine
+		case 21: // Roshamuul
+		case 20: // Rathleton
+		case 22: // Issavi
+			return Kingdom::South;
 
-                // East
-                case 9:  // Venore
-                case 19: // Krailos
-                case 25: // Bounac
-                case 24: // Cobra Bastion
-                        return Kingdom::East;
+		// East
+		case 9: // Venore
+		case 19: // Krailos
+		case 25: // Bounac
+		case 24: // Cobra Bastion
+			return Kingdom::East;
 
-                default:
-                        return Kingdom::None;
-        }
+		default:
+			return Kingdom::None;
+	}
 }
 
 std::string Player::getDescription(int32_t lookDistance) {
@@ -256,9 +285,9 @@ std::string Player::getDescription(int32_t lookDistance) {
 			s << " " << subjectPronoun << " " << getSubjectVerb() << " " << article << " " << loyaltyTitle << ".";
 		}
 
-               // --- Titles / Kingdom (when looking at another player)
-               if (isPresident_) {
-                       s << " " << subjectPronoun << " " << getSubjectVerb() << " the President of "
+		// --- Titles / Kingdom (when looking at another player)
+		if (isPresident_) {
+			s << " " << subjectPronoun << " " << getSubjectVerb() << " the President of "
 			  << g_configManager().getString(SERVER_NAME) << ".";
 		} else if (isGovernor_) {
 			if (const char* k = kingdomName(kingdom_)) {
@@ -3459,9 +3488,9 @@ void Player::addExperience(const std::shared_ptr<Creature> &target, uint64_t exp
 
 	if (sendText) {
 		std::string expString = fmt::format("{} experience point{}.", exp, (exp != 1 ? "s" : ""));
-               if (handleAnimusMastery) {
-                       expString = fmt::format("{} (animus mastery bonus {:.1f}%)", expString, (animusMasteryMultiplier - 1) * 100);
-               }
+		if (handleAnimusMastery) {
+			expString = fmt::format("{} (animus mastery bonus {:.1f}%)", expString, (animusMasteryMultiplier - 1) * 100);
+		}
 
 		TextMessage message(MESSAGE_EXPERIENCE, "You gained " + expString + (handleHazardExperience ? " (Hazard)" : ""));
 		message.position = position;
@@ -5388,7 +5417,7 @@ bool Player::checkAutoLoot(bool isBoss) const {
 	if (!g_configManager().getBoolean(AUTOLOOT)) {
 		return false;
 	}
-       auto featureKV = kv()->scoped("features")->get("autoloot");
+	auto featureKV = kv()->scoped("features")->get("autoloot");
 	auto value = featureKV.has_value() ? featureKV->getNumber() : 0;
 	if (value == 2) {
 		return true;
@@ -5616,6 +5645,95 @@ std::vector<std::shared_ptr<Item>> Player::getEquippedItems() const {
 	}
 
 	return valid_items;
+}
+
+uint16_t Player::computeTotalItemLevel() {
+	uint16_t total = 0;
+	for (const auto &item : getEquippedItems()) {
+		total += item->getItemLevel();
+	}
+	itemLevelTotal = total;
+	return itemLevelTotal;
+}
+
+void Player::updateItemLevelBonuses() {
+	const uint16_t total = computeTotalItemLevel();
+
+	int32_t newHp = 0;
+	int32_t newMana = 0;
+	int32_t newCap = 0;
+	int32_t newSpeed = 0;
+	int32_t newCritChance = 0;
+	int32_t newCritDamage = 0;
+	int32_t newDodge = 0;
+	double newFatal = 0.0;
+
+	for (const auto &entry : itemLevelBonusTable) {
+		if (total < entry.min || total > entry.max) {
+			continue;
+		}
+
+		switch (entry.type) {
+			case ItemLevelBonusEntry::Type::HP_PERCENT:
+				newHp += getDefaultStats(STAT_MAXHITPOINTS) * entry.value / 100;
+				break;
+			case ItemLevelBonusEntry::Type::MANA_PERCENT:
+				newMana += getDefaultStats(STAT_MAXMANAPOINTS) * entry.value / 100;
+				break;
+			case ItemLevelBonusEntry::Type::CAPACITY_FLAT:
+				newCap += entry.value * 100;
+				break;
+			case ItemLevelBonusEntry::Type::SPEED_FLAT:
+				newSpeed += entry.value;
+				break;
+			case ItemLevelBonusEntry::Type::CRIT_CHANCE:
+				newCritChance += entry.value * 100;
+				break;
+			case ItemLevelBonusEntry::Type::CRIT_DAMAGE:
+				newCritDamage += entry.value * 100;
+				break;
+			case ItemLevelBonusEntry::Type::DODGE:
+				newDodge += entry.value * 100;
+				break;
+			case ItemLevelBonusEntry::Type::FATAL:
+				newFatal += entry.value;
+				break;
+		}
+	}
+
+	if (newHp != itemLevelHpBonus) {
+		setVarStats(STAT_MAXHITPOINTS, newHp - itemLevelHpBonus);
+		itemLevelHpBonus = newHp;
+	}
+	if (newMana != itemLevelManaBonus) {
+		setVarStats(STAT_MAXMANAPOINTS, newMana - itemLevelManaBonus);
+		itemLevelManaBonus = newMana;
+	}
+	if (newCap != itemLevelCapacityBonus) {
+		setVarStats(STAT_CAPACITY, newCap - itemLevelCapacityBonus);
+		itemLevelCapacityBonus = newCap;
+	}
+	if (newSpeed != itemLevelSpeedBonus) {
+		g_game().changePlayerSpeed(static_self_cast<Player>(), newSpeed - itemLevelSpeedBonus);
+		itemLevelSpeedBonus = newSpeed;
+	}
+	if (newCritChance != itemLevelCritChanceBonus) {
+		setVarSkill(SKILL_CRITICAL_HIT_CHANCE, newCritChance - itemLevelCritChanceBonus);
+		itemLevelCritChanceBonus = newCritChance;
+	}
+	if (newCritDamage != itemLevelCritDamageBonus) {
+		setVarSkill(SKILL_CRITICAL_HIT_DAMAGE, newCritDamage - itemLevelCritDamageBonus);
+		itemLevelCritDamageBonus = newCritDamage;
+	}
+	if (newDodge != itemLevelDodgeBonus) {
+		itemLevelDodgeBonus = newDodge;
+	}
+	if (newFatal != itemLevelFatalBonus) {
+		itemLevelFatalBonus = newFatal;
+	}
+
+	sendStats();
+	sendSkills();
 }
 
 std::map<uint32_t, uint32_t> &Player::getAllItemTypeCount(std::map<uint32_t, uint32_t> &countMap) const {
@@ -7006,7 +7124,7 @@ time_t Player::getPremiumLastDay() const {
 }
 
 bool Player::isVip() const {
-       return false;
+	return false;
 }
 
 void Player::setTibiaCoins(int32_t v) {
@@ -7746,10 +7864,10 @@ std::shared_ptr<Town> Player::getTown() const {
 	return town;
 }
 void Player::setTown(const std::shared_ptr<Town> &newTown) {
-        this->town = newTown;
-        if (newTown) {
-                setKingdom(static_cast<uint8_t>(kingdomFromTownId(newTown->getID())));
-        }
+	this->town = newTown;
+	if (newTown) {
+		setKingdom(static_cast<uint8_t>(kingdomFromTownId(newTown->getID())));
+	}
 }
 
 bool Player::hasModalWindowOpen(uint32_t modalWindowId) const {
@@ -8010,8 +8128,8 @@ void Player::onThink(uint32_t interval) {
 	// Momentum (cooldown resets)
 	triggerMomentum();
 	const auto &playerTile = getTile();
-       idleTime += interval;
-       if (playerTile && !playerTile->hasFlag(TILESTATE_NOLOGOUT) && !isAccessPlayer() && !isExerciseTraining()) {
+	idleTime += interval;
+	if (playerTile && !playerTile->hasFlag(TILESTATE_NOLOGOUT) && !isAccessPlayer() && !isExerciseTraining()) {
 		const int32_t kickAfterMinutes = g_configManager().getNumber(KICK_AFTER_MINUTES);
 		if (idleTime > (kickAfterMinutes * 60000) + 60000) {
 			removePlayer(true);
@@ -8041,6 +8159,9 @@ void Player::postAddNotification(const std::shared_ptr<Thing> &thing, const std:
 	if (link == LINK_OWNER) {
 		// calling movement scripts
 		g_moveEvents().onPlayerEquip(getPlayer(), thing->getItem(), static_cast<Slots_t>(index), false);
+		if (index >= CONST_SLOT_FIRST && index <= CONST_SLOT_LAST) {
+			updateItemLevelBonuses();
+		}
 	}
 
 	bool requireListUpdate = true;
@@ -8101,6 +8222,9 @@ void Player::postRemoveNotification(const std::shared_ptr<Thing> &thing, const s
 	if (link == LINK_OWNER) {
 		if (const auto &item = copyThing->getItem()) {
 			g_moveEvents().onPlayerDeEquip(getPlayer(), item, static_cast<Slots_t>(index));
+		}
+		if (index >= CONST_SLOT_FIRST && index <= CONST_SLOT_LAST) {
+			updateItemLevelBonuses();
 		}
 	}
 	bool requireListUpdate = true;
@@ -10865,6 +10989,7 @@ void Player::onEquipInventory() {
 			g_moveEvents().onPlayerEquip(getPlayer(), item, static_cast<Slots_t>(slot), false);
 		}
 	}
+	updateItemLevelBonuses();
 }
 
 void Player::onDeEquipInventory() {
@@ -10874,6 +10999,7 @@ void Player::onDeEquipInventory() {
 			g_moveEvents().onPlayerDeEquip(getPlayer(), item, static_cast<Slots_t>(slot));
 		}
 	}
+	updateItemLevelBonuses();
 }
 
 void Player::onAttackedCreatureDisappear(bool isLogout) {
@@ -11329,9 +11455,9 @@ bool Player::hasPermittedConditionInPZ() const {
 
 uint16_t Player::getDodgeChance() const {
 	const auto &playerArmor = getInventoryItem(CONST_SLOT_ARMOR);
-	const auto wheelDodge = m_wheelPlayer.getStat(WheelStat_t::DODGE);
+	const auto baseDodge = m_wheelPlayer.getStat(WheelStat_t::DODGE) + itemLevelDodgeBonus;
 	if (!playerArmor || playerArmor->getTier() == 0) {
-		return wheelDodge;
+		return baseDodge;
 	}
 
 	auto chance = static_cast<uint16_t>(playerArmor->getDodgeChance() * 100);
@@ -11342,7 +11468,7 @@ uint16_t Player::getDodgeChance() const {
 		chance += static_cast<uint16_t>(amplValue);
 	}
 
-	chance += wheelDodge;
+	chance += baseDodge;
 
 	return chance;
 }

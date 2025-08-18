@@ -241,7 +241,7 @@ public:
 	void addList() override;
 	void removePlayer(bool displayEffect, bool forced = true);
 
-	    // === NOVOS GETTERS/SETTERS (públicos) ===
+	// === NOVOS GETTERS/SETTERS (públicos) ===
 	void setPresident(bool v) {
 		isPresident_ = v;
 	}
@@ -261,7 +261,6 @@ public:
 	Kingdom getKingdom() const {
 		return kingdom_;
 	}
-
 
 	static uint64_t getExpForLevel(const uint32_t level);
 
@@ -1335,6 +1334,15 @@ public:
 	 */
 	std::vector<std::shared_ptr<Item>> getEquippedItems() const;
 
+	uint16_t computeTotalItemLevel();
+	uint16_t getTotalItemLevel() const {
+		return itemLevelTotal;
+	}
+	double getItemLevelFatalBonus() const {
+		return itemLevelFatalBonus;
+	}
+	void updateItemLevelBonuses();
+
 	// Player wheel interface
 	PlayerWheel &wheel();
 	const PlayerWheel &wheel() const;
@@ -1592,6 +1600,16 @@ private:
 	uint32_t coinTransferableBalance = 0;
 	uint16_t xpBoostTime = 0;
 	uint8_t randomMount = 0;
+
+	uint16_t itemLevelTotal = 0;
+	int32_t itemLevelHpBonus = 0;
+	int32_t itemLevelManaBonus = 0;
+	int32_t itemLevelCapacityBonus = 0;
+	int32_t itemLevelSpeedBonus = 0;
+	int32_t itemLevelCritChanceBonus = 0;
+	int32_t itemLevelCritDamageBonus = 0;
+	int32_t itemLevelDodgeBonus = 0;
+	double itemLevelFatalBonus = 0;
 
 	uint16_t lastStatsTrainingTime = 0;
 	uint16_t staminaMinutes = 2520;

@@ -107,22 +107,22 @@ CombatDamage Combat::getCombatDamage(const std::shared_ptr<Creature> &creature, 
 				}
 			}
 		}
-               if (attackerPlayer && wheelSpell && wheelSpell->isInstant()) {
-                       wheelSpell->getCombatDataAugment(attackerPlayer, damage);
-               }
-       }
+		if (attackerPlayer && wheelSpell && wheelSpell->isInstant()) {
+			wheelSpell->getCombatDataAugment(attackerPlayer, damage);
+		}
+	}
 
-       if (attackerPlayer && damage.primary.value > 0) {
-               uint32_t bonusPercent = (attackerPlayer->getLevel() / 100) * 2;
-               if (bonusPercent > 0) {
-                       damage.primary.value += static_cast<int32_t>(std::ceil((damage.primary.value * bonusPercent) / 100.0));
-                       if (damage.secondary.value > 0) {
-                               damage.secondary.value += static_cast<int32_t>(std::ceil((damage.secondary.value * bonusPercent) / 100.0));
-                       }
-               }
-       }
+	if (attackerPlayer && damage.primary.value > 0) {
+		uint32_t bonusPercent = (attackerPlayer->getLevel() / 100) * 2;
+		if (bonusPercent > 0) {
+			damage.primary.value += static_cast<int32_t>(std::ceil((damage.primary.value * bonusPercent) / 100.0));
+			if (damage.secondary.value > 0) {
+				damage.secondary.value += static_cast<int32_t>(std::ceil((damage.secondary.value * bonusPercent) / 100.0));
+			}
+		}
+	}
 
-       return damage;
+	return damage;
 }
 
 void Combat::getCombatArea(const Position &centerPos, const Position &targetPos, const std::unique_ptr<AreaCombat> &area, std::vector<std::shared_ptr<Tile>> &list) {
@@ -2334,6 +2334,7 @@ void Combat::applyExtensions(const std::shared_ptr<Creature> &caster, const std:
 			if (const auto &playerBoots = player->getInventoryItem(CONST_SLOT_FEET); playerBoots && playerBoots->getTier()) {
 				fatalChance *= 1 + (playerBoots->getAmplificationChance() / 100);
 			}
+			fatalChance += player->getItemLevelFatalBonus();
 			canApplyFatal = (fatalChance > 0 && uniform_random(0, 10000) / 100.0 < fatalChance);
 		}
 
