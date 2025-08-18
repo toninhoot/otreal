@@ -63,6 +63,9 @@ local function fetchOne(query)
     kingdom = safeGetNumber(r,"kingdom"), kingdom_since = safeGetString(r,"kingdom_since"),
     week_iso = safeGetString(r,"week_iso"), status = safeGetString(r,"status"),
     next_eligible_ts = safeGetString(r,"next_eligible_ts"),
+    candidacy_open_ts = safeGetString(r,"candidacy_open_ts"),
+    voting_open_ts = safeGetString(r,"voting_open_ts"),
+    voting_close_ts = safeGetString(r,"voting_close_ts"),
   }
   result.free(r); return row
 end
@@ -215,6 +218,21 @@ local function handleMessage(npc, creature, msg)
     local cyc = getCurrentCycle()
     if not cyc then reply(npc, creature, "Sem ciclo ativo."); return true end
     reply(npc, creature, ("Ciclo %s. Fase: %s."):format(cyc.week_iso or "?", cyc.status or "?"))
+    return true
+  end
+
+  if p == "horario" or p == "horarios" or p == "informacao" or p == "informacoes" then
+    local cyc = getCurrentCycle()
+    if not cyc then
+      reply(npc, creature, "Sem ciclo ativo.")
+      return true
+    end
+    if cyc.candidacy_open_ts and cyc.voting_open_ts and cyc.voting_close_ts then
+      reply(npc, creature, string.format("Candidaturas abrem em %s. Votacao de %s ate %s.",
+        cyc.candidacy_open_ts, cyc.voting_open_ts, cyc.voting_close_ts))
+    else
+      reply(npc, creature, "Horarios ainda nao definidos.")
+    end
     return true
   end
 

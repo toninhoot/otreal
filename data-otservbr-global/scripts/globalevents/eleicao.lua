@@ -90,7 +90,6 @@ local function actionOpenCandidacy()
   local cid = ensureCycle(now())
   setCycleStatus(cid, 'CANDIDACY')
   Game.broadcastMessage("[Eleicoes] Candidaturas abertas. Procure o Comissario Eleitoral nas capitais.", MESSAGE_EVENT_ADVANCE)
-  -- TODO: spawn NPC de candidaturas (sabado)
   return true
 end
 
@@ -99,7 +98,6 @@ local function actionOpenVoting()
   local cid = ensureCycle(now())
   setCycleStatus(cid, 'VOTING')
   Game.broadcastMessage("[Eleicoes] Votacao aberta. Encerra hoje no horario configurado.", MESSAGE_EVENT_ADVANCE)
-  -- TODO: despawn NPC candidaturas; spawn NPC votacao (domingo)
   return true
 end
 
@@ -113,7 +111,6 @@ local function actionCloseVotingAndAppoint()
   Game.broadcastMessage("[Eleicoes] Encerradas. Apurando resultados...", MESSAGE_EVENT_ADVANCE)
   appointWinners(cid)
   setCycleStatus(cid, 'CLOSED')
-  -- TODO: despawn NPC votacao
   return true
 end
 
@@ -172,4 +169,20 @@ function voteClose.onTime()
 end
 voteClose:time(string.format("%02d:00", Cfg.day7VotingEndHour))
 voteClose:register()
+
+-- Spawn do Comissario nas capitais ao iniciar o servidor
+local spawnNpc = GlobalEvent("elections_spawn_npc")
+function spawnNpc.onStartup()
+  if not Cfg.enabled then return true end
+  for _, pos in pairs(Cfg.npcPos) do
+    local p = Position(pos.x, pos.y, pos.z)
+    local npc = Game.createNpc(Cfg.npcName, p)
+    if npc then
+      npc:setMasterPos(p)
+      p:sendMagicEffect(CONST_ME_TELEPORT)
+    end
+  end
+  return true
+end
+spawnNpc:register()
 
