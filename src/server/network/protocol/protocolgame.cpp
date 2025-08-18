@@ -4264,21 +4264,27 @@ void ProtocolGame::sendCyclopediaCharacterOffenceStats() {
 	msg.add<uint16_t>(flatBonus);
 	msg.add<uint16_t>(0x00);
 
-	const auto &weapon = player->getWeapon();
-	if (weapon) {
-		const ItemType &it = Item::items[weapon->getID()];
-		if (it.weaponType == WEAPON_WAND) {
-			msg.add<uint16_t>(it.maxHitChance);
-			msg.add<uint16_t>(0);
-			msg.add<uint16_t>(0);
-			msg.addByte(0x00);
-			msg.add<uint16_t>(0);
-			msg.add<uint16_t>(0);
-			msg.addByte(getCipbiaElement(it.combatType));
-			msg.addDouble(0.0);
-			msg.addByte(0x00);
-			msg.addByte(0x00);
-		} else if (it.weaponType == WEAPON_DISTANCE || it.weaponType == WEAPON_AMMO || it.weaponType == WEAPON_MISSILE) {
+       const auto &weapon = player->getWeapon();
+       if (weapon) {
+               const ItemType &it = Item::items[weapon->getID()];
+               if (it.weaponType == WEAPON_WAND) {
+                       msg.add<uint16_t>(it.maxHitChance);
+                       uint16_t minDamage = 0;
+                       uint16_t maxDamage = 0;
+                       if (const auto &weaponEvent = std::dynamic_pointer_cast<WeaponWand>(g_weapons().getWeapon(weapon))) {
+                               minDamage = weaponEvent->getMinChange();
+                               maxDamage = weaponEvent->getMaxChange();
+                       }
+                       msg.add<uint16_t>(minDamage);
+                       msg.add<uint16_t>(maxDamage);
+                       msg.addByte(0x00);
+                       msg.add<uint16_t>(0);
+                       msg.add<uint16_t>(0);
+                       msg.addByte(getCipbiaElement(it.combatType));
+                       msg.addDouble(0.0);
+                       msg.addByte(0x00);
+                       msg.addByte(0x00);
+               } else if (it.weaponType == WEAPON_DISTANCE || it.weaponType == WEAPON_AMMO || it.weaponType == WEAPON_MISSILE) {
 			int32_t physicalAttack = std::max<int32_t>(0, weapon->getAttack());
 			int32_t elementalAttack = 0;
 			if (it.abilities && it.abilities->elementType != COMBAT_NONE) {
@@ -8228,15 +8234,23 @@ void ProtocolGame::AddPlayerSkills(NetworkMessage &msg) {
 	const auto flatBonus = player->calculateFlatDamageHealing();
 	msg.add<uint16_t>(flatBonus); // Flat Damage and Healing Total
 
-	const auto &weapon = player->getWeapon();
-	if (weapon) {
-		const ItemType &it = Item::items[weapon->getID()];
-		if (it.weaponType == WEAPON_WAND) {
-			msg.add<uint16_t>(it.maxHitChance);
-			msg.addByte(getCipbiaElement(it.combatType));
-			msg.addDouble(0.0);
-			msg.addByte(0x00);
-		} else if (it.weaponType == WEAPON_DISTANCE || it.weaponType == WEAPON_AMMO || it.weaponType == WEAPON_MISSILE) {
+       const auto &weapon = player->getWeapon();
+       if (weapon) {
+               const ItemType &it = Item::items[weapon->getID()];
+               if (it.weaponType == WEAPON_WAND) {
+                       msg.add<uint16_t>(it.maxHitChance);
+                       uint16_t minDamage = 0;
+                       uint16_t maxDamage = 0;
+                       if (const auto &weaponEvent = std::dynamic_pointer_cast<WeaponWand>(g_weapons().getWeapon(weapon))) {
+                               minDamage = weaponEvent->getMinChange();
+                               maxDamage = weaponEvent->getMaxChange();
+                       }
+                       msg.add<uint16_t>(minDamage);
+                       msg.add<uint16_t>(maxDamage);
+                       msg.addByte(getCipbiaElement(it.combatType));
+                       msg.addDouble(0.0);
+                       msg.addByte(0x00);
+               } else if (it.weaponType == WEAPON_DISTANCE || it.weaponType == WEAPON_AMMO || it.weaponType == WEAPON_MISSILE) {
 			int32_t physicalAttack = std::max<int32_t>(0, weapon->getAttack());
 			int32_t elementalAttack = 0;
 			if (it.abilities && it.abilities->elementType != COMBAT_NONE) {

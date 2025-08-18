@@ -330,9 +330,17 @@ public:
 		minChange = change;
 	}
 
-	void setMaxChange(int32_t change) {
-		maxChange = change;
-	}
+        void setMaxChange(int32_t change) {
+                maxChange = change;
+        }
+
+       int32_t getMinChange() const {
+               return minChange;
+       }
+
+       int32_t getMaxChange() const {
+               return maxChange;
+       }
 
 private:
 	bool getSkillType(const std::shared_ptr<Player> &, const std::shared_ptr<Item> &, skills_t &, uint32_t &) const override {
