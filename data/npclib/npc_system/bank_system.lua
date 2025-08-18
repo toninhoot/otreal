@@ -236,15 +236,24 @@ function Npc:parseBank(message, npc, creature, npcHandler)
     if MsgContains(message, "yes") then
       local amount = count[playerId] or 0
       local b = iofBreakdown(amount, player)
-      if player:removeMoney(amount) then
-        -- Credit net amount to bank account (amount already removed from player)
-        if Bank and Bank.credit then
-          Bank.credit(player, b.net)
-        else
-          player:setBankBalance(player:getBankBalance() + b.net)
+      local success = false
+      if Bank and Bank.deposit and Bank.debit then
+        -- Use C++ bank helpers when available for better error handling
+        if Bank.deposit(player, amount) then
+          if b.tax > 0 then
+            Bank.debit(player, b.tax)
+            distributeIOF(b, player)
+          end
+          success = true
         end
-        -- Distribute IOF tax shares
-        distributeIOF(b, player)
+      else
+        if player:removeMoney(amount) then
+          player:setBankBalance(player:getBankBalance() + b.net)
+          distributeIOF(b, player)
+          success = true
+        end
+      end
+      if success then
         npcHandler:say("Deposit successful.\n" .. iofReceiptLine("Deposit", amount, b), npc, creature)
       else
         npcHandler:say("You do not have enough gold.", npc, creature)
