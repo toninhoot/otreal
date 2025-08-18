@@ -29,11 +29,10 @@ local Cfg = {
   -- NPC (capitais) – preencha coords depois
   npcName = "Comissario Eleitoral",
   npcPos = {
-    DF    = {x=0,y=0,z=7},
-    NORTE = {x=0,y=0,z=7},
-    OESTE = {x=0,y=0,z=7},
-    SUL   = {x=0,y=0,z=7},
-    LESTE = {x=0,y=0,z=7},
+    NORTE = {x=32379,y=32241,z=7},
+    OESTE = {x=32908,y=32072,z=7},
+    SUL   = {x=32685,y=31691,z=6},
+    LESTE = {x=33211,y=32460,z=8},
   },
   kingdomNames = { [1]="Norte",[2]="Oeste",[3]="Sul",[4]="Leste" },
 }
