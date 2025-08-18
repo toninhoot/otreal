@@ -14,6 +14,7 @@
 #include "creatures/combat/condition.hpp"
 #include "creatures/players/player.hpp"
 #include "game/game.hpp"
+#include "game/scheduling/dispatcher.hpp"
 #include "lua/callbacks/event_callback.hpp"
 #include "lua/callbacks/events_callbacks.hpp"
 #include "lua/creature/events.hpp"
@@ -288,37 +289,50 @@ std::shared_ptr<MoveEvent> MoveEvents::getEvent(const std::shared_ptr<Tile> &til
 }
 
 uint32_t MoveEvents::onCreatureMove(const std::shared_ptr<Creature> &creature, const std::shared_ptr<Tile> &tile, MoveEvent_t eventType) {
-	const Position &pos = tile->getPosition();
+        thread_local bool executing = false;
+        if (executing) {
+                auto creatureRef = creature;
+                auto tileRef = tile;
+                g_dispatcher().addEvent([creatureRef, tileRef, eventType]() {
+                        g_moveEvents().onCreatureMove(creatureRef, tileRef, eventType);
+                }, "MoveEvents::onCreatureMove");
+                return 1;
+        }
 
-	uint32_t ret = 1;
+        executing = true;
+        const Position &pos = tile->getPosition();
 
-	auto moveEvent = getEvent(tile, eventType);
-	if (moveEvent) {
-		ret &= moveEvent->fireStepEvent(creature, nullptr, pos);
-	}
+        uint32_t ret = 1;
 
-	for (size_t i = tile->getFirstIndex(), j = tile->getLastIndex(); i < j; ++i) {
-		const auto &thing = tile->getThing(i);
-		if (!thing) {
-			continue;
-		}
+        auto moveEvent = getEvent(tile, eventType);
+        if (moveEvent) {
+                ret &= moveEvent->fireStepEvent(creature, nullptr, pos);
+        }
 
-		const auto &tileItem = thing->getItem();
-		if (!tileItem) {
-			continue;
-		}
+        for (size_t i = tile->getFirstIndex(), j = tile->getLastIndex(); i < j; ++i) {
+                const auto &thing = tile->getThing(i);
+                if (!thing) {
+                        continue;
+                }
 
-		moveEvent = getEvent(tileItem, eventType);
-		if (moveEvent) {
-			const auto step = moveEvent->fireStepEvent(creature, tileItem, pos);
-			// If there is any problem in the function, we will kill the loop
-			if (step == 0) {
-				break;
-			}
-			ret &= step;
-		}
-	}
-	return ret;
+                const auto &tileItem = thing->getItem();
+                if (!tileItem) {
+                        continue;
+                }
+
+                moveEvent = getEvent(tileItem, eventType);
+                if (moveEvent) {
+                        const auto step = moveEvent->fireStepEvent(creature, tileItem, pos);
+                        // If there is any problem in the function, we will kill the loop
+                        if (step == 0) {
+                                break;
+                        }
+                        ret &= step;
+                }
+        }
+
+        executing = false;
+        return ret;
 }
 
 uint32_t MoveEvents::onPlayerEquip(const std::shared_ptr<Player> &player, const std::shared_ptr<Item> &item, Slots_t slot, bool isCheck) {
