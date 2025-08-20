@@ -1608,6 +1608,8 @@ private:
 	int32_t itemLevelSpeedBonus = 0;
 	int32_t itemLevelCritChanceBonus = 0;
 	int32_t itemLevelCritDamageBonus = 0;
+	int32_t itemLevelLifeLeechBonus = 0;
+	int32_t itemLevelManaLeechBonus = 0;
 	int32_t itemLevelDodgeBonus = 0;
 	double itemLevelFatalBonus = 0;
 

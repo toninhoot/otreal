@@ -74,6 +74,8 @@ namespace {
 			CRIT_DAMAGE,
 			DODGE,
 			FATAL,
+			LIFE_LEECH,
+			MANA_LEECH,
 		} type;
 		int32_t value;
 	};
@@ -82,11 +84,17 @@ namespace {
 		{ 6, ItemLevelBonusEntry::Type::HP_PERCENT, 2 },
 		{ 61, ItemLevelBonusEntry::Type::MANA_PERCENT, 5 },
 		{ 121, ItemLevelBonusEntry::Type::CAPACITY_FLAT, 600 },
+		{ 231, ItemLevelBonusEntry::Type::HP_PERCENT, 3 },
 		{ 231, ItemLevelBonusEntry::Type::SPEED_FLAT, 100 },
+		{ 351, ItemLevelBonusEntry::Type::MANA_PERCENT, 5 },
 		{ 351, ItemLevelBonusEntry::Type::CRIT_CHANCE, 5 },
+		{ 471, ItemLevelBonusEntry::Type::CAPACITY_FLAT, 400 },
 		{ 471, ItemLevelBonusEntry::Type::CRIT_DAMAGE, 5 },
+		{ 561, ItemLevelBonusEntry::Type::CRIT_CHANCE, 2 },
 		{ 561, ItemLevelBonusEntry::Type::DODGE, 3 },
 		{ 600, ItemLevelBonusEntry::Type::FATAL, 5 },
+		{ 600, ItemLevelBonusEntry::Type::LIFE_LEECH, 5 },
+		{ 600, ItemLevelBonusEntry::Type::MANA_LEECH, 2 },
 	};
 } // namespace
 
@@ -5671,6 +5679,8 @@ void Player::updateItemLevelBonuses() {
 	int32_t newSpeed = 0;
 	int32_t newCritChance = 0;
 	int32_t newCritDamage = 0;
+	int32_t newLifeLeech = 0;
+	int32_t newManaLeech = 0;
 	int32_t newDodge = 0;
 	double newFatal = 0.0;
 
@@ -5697,6 +5707,12 @@ void Player::updateItemLevelBonuses() {
 				break;
 			case ItemLevelBonusEntry::Type::CRIT_DAMAGE:
 				newCritDamage += entry.value * 100;
+				break;
+			case ItemLevelBonusEntry::Type::LIFE_LEECH:
+				newLifeLeech += entry.value * 100;
+				break;
+			case ItemLevelBonusEntry::Type::MANA_LEECH:
+				newManaLeech += entry.value * 100;
 				break;
 			case ItemLevelBonusEntry::Type::DODGE:
 				newDodge += entry.value * 100;
@@ -5730,6 +5746,14 @@ void Player::updateItemLevelBonuses() {
 	if (newCritDamage != itemLevelCritDamageBonus) {
 		setVarSkill(SKILL_CRITICAL_HIT_DAMAGE, newCritDamage - itemLevelCritDamageBonus);
 		itemLevelCritDamageBonus = newCritDamage;
+	}
+	if (newLifeLeech != itemLevelLifeLeechBonus) {
+		setVarSkill(SKILL_LIFE_LEECH_AMOUNT, newLifeLeech - itemLevelLifeLeechBonus);
+		itemLevelLifeLeechBonus = newLifeLeech;
+	}
+	if (newManaLeech != itemLevelManaLeechBonus) {
+		setVarSkill(SKILL_MANA_LEECH_AMOUNT, newManaLeech - itemLevelManaLeechBonus);
+		itemLevelManaLeechBonus = newManaLeech;
 	}
 	if (newDodge != itemLevelDodgeBonus) {
 		itemLevelDodgeBonus = newDodge;
