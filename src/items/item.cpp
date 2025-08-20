@@ -127,12 +127,17 @@ std::shared_ptr<Item> Item::CreateItem(const uint16_t type, uint16_t count /*= 0
 	} else {
 		g_logger().warn("[Item::CreateItem] Item with id '{}' is not registered and cannot be created.", type);
 	}
-	if (newItem) {
-		if (it.isHelmet() || it.isArmor() || it.isLegs() || it.isBoots() || it.isShield() || it.isSpellBook() || it.isWeapon()) {
-			newItem->setAttribute(ItemAttribute_t::ILVL, rollItemLevel());
-		}
-	}
-	return newItem;
+        if (newItem) {
+                if (it.isHelmet() || it.isArmor() || it.isLegs() || it.isBoots() || it.isShield() || it.isSpellBook() || it.isWeapon()) {
+                        newItem->setAttribute(ItemAttribute_t::ILVL, rollItemLevel());
+                }
+                if (it.isShield() || it.isSpellBook()) {
+                        if (uniform_random(1, 100) == 1) {
+                                newItem->setAttribute(ItemAttribute_t::MAGIC_PROTECTION, 1);
+                        }
+                }
+        }
+        return newItem;
 }
 
 bool Item::hasImbuementAttribute(const std::string &attributeSlot) const {
@@ -995,18 +1000,27 @@ Attr_ReadValue Item::readAttr(AttrTypes_t attr, PropStream &propStream) {
 			setAttribute(ItemAttribute_t::OBTAINCONTAINER, flags);
 			break;
 		}
-		case ATTR_ILVL: {
-			uint8_t level;
-			if (!propStream.read<uint8_t>(level)) {
-				return ATTR_READ_ERROR;
-			}
+                case ATTR_ILVL: {
+                        uint8_t level;
+                        if (!propStream.read<uint8_t>(level)) {
+                                return ATTR_READ_ERROR;
+                        }
 
-			setAttribute(ItemAttribute_t::ILVL, level);
-			break;
-		}
-		default:
-			return ATTR_READ_ERROR;
-	}
+                        setAttribute(ItemAttribute_t::ILVL, level);
+                        break;
+                }
+                case ATTR_MAGIC_PROTECTION: {
+                        int32_t value;
+                        if (!propStream.read<int32_t>(value)) {
+                                return ATTR_READ_ERROR;
+                        }
+
+                        setAttribute(ItemAttribute_t::MAGIC_PROTECTION, value);
+                        break;
+                }
+                default:
+                        return ATTR_READ_ERROR;
+        }
 
 	return ATTR_READ_CONTINUE;
 }
@@ -1194,10 +1208,14 @@ void Item::serializeAttr(PropWriteStream &propWriteStream) const {
 		g_logger().debug("Reading flag {}, to item id {}", flags, getID());
 		propWriteStream.write<uint32_t>(flags);
 	}
-	if (hasAttribute(ItemAttribute_t::ILVL)) {
-		propWriteStream.write<uint8_t>(ATTR_ILVL);
-		propWriteStream.write<uint8_t>(getAttribute<uint8_t>(ItemAttribute_t::ILVL));
-	}
+        if (hasAttribute(ItemAttribute_t::ILVL)) {
+                propWriteStream.write<uint8_t>(ATTR_ILVL);
+                propWriteStream.write<uint8_t>(getAttribute<uint8_t>(ItemAttribute_t::ILVL));
+        }
+        if (hasAttribute(ItemAttribute_t::MAGIC_PROTECTION)) {
+                propWriteStream.write<uint8_t>(ATTR_MAGIC_PROTECTION);
+                propWriteStream.write<int32_t>(getAttribute<int32_t>(ItemAttribute_t::MAGIC_PROTECTION));
+        }
 }
 
 void Item::setOwner(const std::shared_ptr<Creature> &owner) {

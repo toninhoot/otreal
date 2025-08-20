@@ -1264,12 +1264,15 @@ ItemAttribute_t stringToItemAttribute(const std::string &str) {
 	if (str == "tier") {
 		return ItemAttribute_t::TIER;
 	}
-	if (str == "ilvl") {
-		return ItemAttribute_t::ILVL;
-	}
-	if (str == "lootmessagesuffix") {
-		return ItemAttribute_t::LOOTMESSAGE_SUFFIX;
-	}
+        if (str == "ilvl") {
+                return ItemAttribute_t::ILVL;
+        }
+        if (str == "magicprotection") {
+                return ItemAttribute_t::MAGIC_PROTECTION;
+        }
+        if (str == "lootmessagesuffix") {
+                return ItemAttribute_t::LOOTMESSAGE_SUFFIX;
+        }
 
 	g_logger().error("[{}] attribute type {} is not registered", __FUNCTION__, str);
 	return ItemAttribute_t::NONE;

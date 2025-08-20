@@ -407,15 +407,21 @@ public:
 		}
 		return items[id].defense;
 	}
-	int32_t getExtraDefense() const {
-		if (hasAttribute(ItemAttribute_t::EXTRADEFENSE)) {
-			return getAttribute<int32_t>(ItemAttribute_t::EXTRADEFENSE);
-		}
-		return items[id].extraDefense;
-	}
-	std::vector<std::shared_ptr<AugmentInfo>> getAugments() const {
-		return items[id].augments;
-	}
+        int32_t getExtraDefense() const {
+                if (hasAttribute(ItemAttribute_t::EXTRADEFENSE)) {
+                        return getAttribute<int32_t>(ItemAttribute_t::EXTRADEFENSE);
+                }
+                return items[id].extraDefense;
+        }
+        int32_t getMagicProtection() const {
+                if (hasAttribute(ItemAttribute_t::MAGIC_PROTECTION)) {
+                        return getAttribute<int32_t>(ItemAttribute_t::MAGIC_PROTECTION);
+                }
+                return 0;
+        }
+        std::vector<std::shared_ptr<AugmentInfo>> getAugments() const {
+                return items[id].augments;
+        }
 	std::vector<std::shared_ptr<AugmentInfo>> getAugmentsBySpellNameAndType(const std::string &spellName, Augment_t augmentType) const {
 		std::vector<std::shared_ptr<AugmentInfo>> augments;
 		for (const auto &augment : items[id].augments) {

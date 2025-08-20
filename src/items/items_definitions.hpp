@@ -242,12 +242,13 @@ enum AttrTypes_t {
 	ATTR_TIER = 40,
 	ATTR_CUSTOM = 41,
 	ATTR_STORE_INBOX_CATEGORY = 42,
-	ATTR_OWNER = 43,
-	ATTR_OBTAINCONTAINER = 44,
-	ATTR_ILVL = 45,
+        ATTR_OWNER = 43,
+        ATTR_OBTAINCONTAINER = 44,
+        ATTR_ILVL = 45,
+        ATTR_MAGIC_PROTECTION = 46,
 
-	// Always the last
-	ATTR_NONE = 0
+        // Always the last
+        ATTR_NONE = 0
 };
 
 enum ImbuementTypes_t : int64_t {

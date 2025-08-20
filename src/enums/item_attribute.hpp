@@ -44,10 +44,11 @@ enum class ItemAttribute_t : uint64_t {
 	STORE = 31,
 	CUSTOM = 32,
 	LOOTMESSAGE_SUFFIX = 33,
-	STORE_INBOX_CATEGORY = 34,
-	OBTAINCONTAINER = 35,
-	AUGMENTS = 36,
-	ILVL = 37,
+        STORE_INBOX_CATEGORY = 34,
+        OBTAINCONTAINER = 35,
+        AUGMENTS = 36,
+        ILVL = 37,
+        MAGIC_PROTECTION = 38,
 };
 
 enum ItemDecayState_t : uint8_t {
