@@ -3740,14 +3740,31 @@ bool Player::isPzLocked() const {
 }
 
 BlockType_t Player::blockHit(const std::shared_ptr<Creature> &attacker, const CombatType_t &combatType, int32_t &damage, bool checkDefense, bool checkArmor, bool field) {
-	BlockType_t blockType = Creature::blockHit(attacker, combatType, damage, checkDefense, checkArmor, field);
-	if (attacker) {
-		sendCreatureSquare(attacker, SQ_COLOR_BLACK);
-	}
+        bool useDefense = checkDefense;
+        if (useDefense && combatType != COMBAT_PHYSICALDAMAGE) {
+                const auto &shield = inventory[CONST_SLOT_RIGHT];
+                if (shield && shield->getMagicProtection() > 0 && magicProtectionBlocks > 0) {
+                        int32_t chance = getMagicProtectionBlockChance();
+                        if (chance > 0 && uniform_random(1, 100) <= chance) {
+                                --magicProtectionBlocks;
+                                damage = 0;
+                                if (attacker) {
+                                        sendCreatureSquare(attacker, SQ_COLOR_BLACK);
+                                }
+                                return BLOCK_DEFENSE;
+                        }
+                }
+                useDefense = false;
+        }
 
-	if (blockType != BLOCK_NONE) {
-		return blockType;
-	}
+        BlockType_t blockType = Creature::blockHit(attacker, combatType, damage, useDefense, checkArmor, field);
+        if (attacker) {
+                sendCreatureSquare(attacker, SQ_COLOR_BLACK);
+        }
+
+        if (blockType != BLOCK_NONE) {
+                return blockType;
+        }
 
 	if (damage > 0) {
 		for (int32_t slot = CONST_SLOT_FIRST; slot <= CONST_SLOT_LAST; ++slot) {
@@ -3810,6 +3827,86 @@ BlockType_t Player::blockHit(const std::shared_ptr<Creature> &attacker, const Co
 	}
 
 	return blockType;
+}
+
+int32_t Player::getMagicProtectionBlockChance() const {
+        const uint16_t shielding = getSkillLevel(SKILL_SHIELD);
+        switch (getVocationId()) {
+                case VOCATION_KNIGHT:
+                case VOCATION_ELITE_KNIGHT:
+                        if (shielding >= 120) {
+                                return 30;
+                        }
+                        if (shielding >= 110) {
+                                return 25;
+                        }
+                        if (shielding >= 100) {
+                                return 20;
+                        }
+                        if (shielding >= 75) {
+                                return 15;
+                        }
+                        if (shielding >= 50) {
+                                return 10;
+                        }
+                        return 0;
+                case VOCATION_PALADIN:
+                case VOCATION_ROYAL_PALADIN:
+                        if (shielding >= 120) {
+                                return 35;
+                        }
+                        if (shielding >= 110) {
+                                return 28;
+                        }
+                        if (shielding >= 100) {
+                                return 25;
+                        }
+                        if (shielding >= 75) {
+                                return 20;
+                        }
+                        if (shielding >= 50) {
+                                return 12;
+                        }
+                        return 0;
+                case VOCATION_SORCERER:
+                case VOCATION_MASTER_SORCERER:
+                        if (shielding >= 60) {
+                                return 50;
+                        }
+                        if (shielding >= 50) {
+                                return 40;
+                        }
+                        if (shielding >= 40) {
+                                return 30;
+                        }
+                        if (shielding >= 30) {
+                                return 25;
+                        }
+                        if (shielding >= 20) {
+                                return 20;
+                        }
+                        return 0;
+                case VOCATION_DRUID:
+                case VOCATION_ELDER_DRUID:
+                        if (shielding >= 60) {
+                                return 60;
+                        }
+                        if (shielding >= 50) {
+                                return 40;
+                        }
+                        if (shielding >= 40) {
+                                return 30;
+                        }
+                        if (shielding >= 30) {
+                                return 25;
+                        }
+                        if (shielding >= 20) {
+                                return 20;
+                        }
+                        return 0;
+                default:
+                        return 0;
+        }
 }
 
 void Player::doAttacking(uint32_t interval) {
@@ -8143,9 +8240,17 @@ void Player::sendTakeScreenshot(Screenshot_t screenshotType) const {
 }
 
 void Player::onThink(uint32_t interval) {
-	Creature::onThink(interval);
+        Creature::onThink(interval);
 
-	sendPing();
+        magicProtectionTicks += interval;
+        if (magicProtectionTicks >= 1000) {
+                if (magicProtectionBlocks < 2) {
+                        ++magicProtectionBlocks;
+                }
+                magicProtectionTicks = 0;
+        }
+
+        sendPing();
 
 	MessageBufferTicks += interval;
 	if (MessageBufferTicks >= 1500) {

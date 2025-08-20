@@ -691,10 +691,11 @@ public:
 	void changeMana(int32_t manaChange) override;
 	void changeSoul(int32_t soulChange);
 
-	bool isPzLocked() const;
-	BlockType_t blockHit(const std::shared_ptr<Creature> &attacker, const CombatType_t &combatType, int32_t &damage, bool checkDefense = false, bool checkArmor = false, bool field = false) override;
-	void doAttacking(uint32_t interval) override;
-	bool hasExtraSwing() override;
+        bool isPzLocked() const;
+        BlockType_t blockHit(const std::shared_ptr<Creature> &attacker, const CombatType_t &combatType, int32_t &damage, bool checkDefense = false, bool checkArmor = false, bool field = false) override;
+        int32_t getMagicProtectionBlockChance() const;
+        void doAttacking(uint32_t interval) override;
+        bool hasExtraSwing() override;
 
 	uint16_t getSkillLevel(skills_t skill) const;
 	uint16_t getLoyaltySkill(skills_t skill) const;
@@ -1652,10 +1653,12 @@ private:
 
 	PlayerSex_t sex = PLAYERSEX_FEMALE;
 	OperatingSystem_t operatingSystem = CLIENTOS_NONE;
-	BlockType_t lastAttackBlockType = BLOCK_NONE;
-	TradeState_t tradeState = TRADE_NONE;
-	FightMode_t fightMode = FIGHTMODE_ATTACK;
-	Faction_t faction = FACTION_PLAYER;
+        BlockType_t lastAttackBlockType = BLOCK_NONE;
+        uint16_t magicProtectionBlocks = 0;
+        uint32_t magicProtectionTicks = 0;
+        TradeState_t tradeState = TRADE_NONE;
+        FightMode_t fightMode = FIGHTMODE_ATTACK;
+        Faction_t faction = FACTION_PLAYER;
 	QuickLootFilter_t quickLootFilter {};
 	PlayerPronoun_t pronoun = PLAYERPRONOUN_THEY;
 
