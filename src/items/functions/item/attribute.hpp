@@ -35,14 +35,15 @@ public:
 			case ItemAttribute_t::FLUIDTYPE:
 			case ItemAttribute_t::DOORID:
 			case ItemAttribute_t::IMBUEMENT_SLOT:
-			case ItemAttribute_t::OPENCONTAINER:
-			case ItemAttribute_t::QUICKLOOTCONTAINER:
-			case ItemAttribute_t::OBTAINCONTAINER:
-			case ItemAttribute_t::ILVL:
-			case ItemAttribute_t::DURATION_TIMESTAMP:
-			case ItemAttribute_t::TIER:
-			case ItemAttribute_t::AMOUNT:
-				return true;
+                        case ItemAttribute_t::OPENCONTAINER:
+                        case ItemAttribute_t::QUICKLOOTCONTAINER:
+                        case ItemAttribute_t::OBTAINCONTAINER:
+                        case ItemAttribute_t::ILVL:
+                        case ItemAttribute_t::MAGIC_PROTECTION:
+                        case ItemAttribute_t::DURATION_TIMESTAMP:
+                        case ItemAttribute_t::TIER:
+                        case ItemAttribute_t::AMOUNT:
+                                return true;
 			default:
 				return false;
 		}
