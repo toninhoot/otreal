@@ -18,6 +18,23 @@ our [customized tools](https://docs.opentibiabr.com/opentibiabr/downloads/tools)
 * [Gitbook](https://docs.opentibiabr.com/opentibiabr/projects/canary).
 * [Wiki](https://github.com/opentibiabr/canary/wiki).
 
+## Graphical Interface
+
+A basic Qt-based GUI can start or stop the server and display logs.
+
+### Build
+
+```bash
+cmake -B build -DBUILD_GUI=ON
+cmake --build build --target canary_gui
+```
+
+### Run
+
+```bash
+./build/bin/canary_gui
+```
+
 ## Support
 
 If you need help, please visit our [discord](https://discord.gg/gvTj5sh9Mp). Our issue tracker is not a support forum, and using it as one will result in your issue being closed.

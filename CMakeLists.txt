@@ -87,6 +87,7 @@ endif()
 
 option(BUILD_TESTS "Build tests" OFF) # By default, tests will not be built
 option(RUN_TESTS_AFTER_BUILD "Run tests when building" OFF) # By default, tests will only run if requested
+option(BUILD_GUI "Build Qt GUI" OFF)
 
 # *****************************************************************************
 # Add project
