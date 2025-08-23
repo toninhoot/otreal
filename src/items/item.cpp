@@ -2233,13 +2233,23 @@ std::string Item::parseClassificationDescription(const std::shared_ptr<Item> &it
 }
 
 std::string Item::parseItemLevelDescription(const std::shared_ptr<Item> &item) {
+        if (!item) {
+                return "";
+        }
+        const ItemType &it = Item::items[item->getID()];
+        if ((it.isHelmet() || it.isArmor() || it.isLegs() || it.isBoots() || it.isShield() || it.isSpellBook() || it.isWeapon()) && item->hasAttribute(ItemAttribute_t::ILVL)) {
+
+                return fmt::format("\nilvl: {}", item->getItemLevel());
+        }
+        return "";
+}
+
+std::string Item::parseMagicProtectionDescription(const std::shared_ptr<Item> &item) {
 	if (!item) {
 		return "";
 	}
-	const ItemType &it = Item::items[item->getID()];
-	if ((it.isHelmet() || it.isArmor() || it.isLegs() || it.isBoots() || it.isShield() || it.isSpellBook() || it.isWeapon()) && item->hasAttribute(ItemAttribute_t::ILVL)) {
-
-		return fmt::format("\nilvl: {}", item->getItemLevel());
+	if (item->getMagicProtection() > 0) {
+		return fmt::format("\nMagic protection: {}", item->getMagicProtection());
 	}
 	return "";
 }
@@ -3313,6 +3323,7 @@ std::string Item::getDescription(const ItemType &it, int32_t lookDistance, const
 
 	s << parseClassificationDescription(item);
 	s << parseItemLevelDescription(item);
+	s << parseMagicProtectionDescription(item);
 
 	if (lookDistance <= 1) {
 		if (item) {
