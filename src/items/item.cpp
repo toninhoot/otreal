@@ -28,6 +28,7 @@
 #include "lua/creature/actions.hpp"
 #include "map/house/house.hpp"
 #include "utils/tools.hpp"
+#include "utils/utils_definitions.hpp"
 
 #define ITEM_IMBUEMENT_SLOT 500
 
@@ -2248,10 +2249,10 @@ std::string Item::parseMagicProtectionDescription(const std::shared_ptr<Item> &i
 	if (!item) {
 		return "";
 	}
-	if (item->getMagicProtection() > 0) {
-		return fmt::format("\nMagic protection: {}", item->getMagicProtection());
-	}
-	return "";
+        if (item->getMagicProtection() > 0) {
+                return fmt::format("\n|c{}|Magic Protection|r", TEXTCOLOR_BLUE);
+        }
+        return "";
 }
 
 std::string Item::getTierEffectDescription(const std::shared_ptr<Item> &item) {
