@@ -12,3 +12,19 @@ O mundo conta com um sistema político no qual jogadores podem se candidatar a c
 ## Sistema de Magic Protection
 Para equilibrar combates e proteger jogadores em situações específicas, existe um sistema de **Magic Protection**. Ele pode reduzir ou anular o dano mágico recebido conforme condições estabelecidas (por exemplo, em áreas seguras ou ao usar certos itens). Essa mecânica incentiva estratégias variadas e cria janelas de segurança durante confrontos mágicos.
 
+## Graphical Interface
+
+A basic Qt-based GUI can start or stop the server and display logs.
+
+### Build
+
+```bash
+cmake -B build -DBUILD_GUI=ON
+cmake --build build --target canary_gui
+```
+
+### Run
+
+```bash
+./build/bin/canary_gui
+```

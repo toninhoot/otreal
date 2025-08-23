@@ -2249,10 +2249,17 @@ std::string Item::parseMagicProtectionDescription(const std::shared_ptr<Item> &i
 	if (!item) {
 		return "";
 	}
+<<<<<<< Updated upstream
         if (item->getMagicProtection() > 0) {
                 return fmt::format("\n|c{}|Magic Protection|r", TEXTCOLOR_BLUE);
         }
         return "";
+=======
+	if (item->getMagicProtection() > 0) {
+		return "\nMagic Protection";
+	}
+	return "";
+>>>>>>> Stashed changes
 }
 
 std::string Item::getTierEffectDescription(const std::shared_ptr<Item> &item) {
