@@ -22,6 +22,11 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_lib)
 # Configurar IPO e Linkagem Incremental para o executável
 configure_linking(${PROJECT_NAME})
 
+# Build GUI
+if(BUILD_GUI)
+    add_subdirectory(gui)
+endif()
+
 # Compiler warnings and options
 if (UNIX)
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")

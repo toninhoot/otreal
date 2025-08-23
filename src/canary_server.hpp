@@ -35,9 +35,10 @@ public:
 		Logger &logger,
 		RSA &rsa,
 		ServiceManager &serviceManager
-	);
+        );
 
-	int run();
+        int run();
+        static void shutdown();
 
 private:
 	enum class LoaderStatus : uint8_t {
@@ -57,9 +58,7 @@ private:
 	void logInfos();
 	static void toggleForceCloseButton();
 	static void badAllocationHandler();
-	static void shutdown();
-
-	static std::string getCompiler();
+        static std::string getCompiler();
 	static std::string getPlatform();
 
 	void loadConfigLua();

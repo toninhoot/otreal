@@ -17,6 +17,7 @@
     "protobuf",
     "pugixml",
     "spdlog",
+    "qt5-base",
     "zlib",
     "bshoshany-thread-pool",
     "atomic-queue",
