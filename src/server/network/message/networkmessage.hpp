@@ -61,7 +61,7 @@ public:
 	Position getPosition();
 
 	// skips count unknown/unused bytes in an incoming message
-	void skipBytes(int16_t count);
+	void skipBytes(uint16_t count);
 
 	// simply write functions for outgoing message
 	void addByte(uint8_t value, std::source_location location = std::source_location::current());
