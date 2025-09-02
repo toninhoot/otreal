@@ -100,16 +100,16 @@ void Connection::closeSocket() {
 		}
 	} catch (const std::system_error &e) {
 		g_logger().error("[Connection::closeSocket] - error closeSocket: {}", e.what());
-        }
+	}
 }
 
 void Connection::setSocketOptions() {
-        try {
-                socket.set_option(asio::ip::tcp::no_delay(true));
-                socket.set_option(asio::socket_base::keep_alive(true));
-        } catch (const std::system_error &e) {
-                g_logger().warn("[Connection::setSocketOptions] - Failed to set socket options: {}", e.what());
-        }
+	try {
+		socket.set_option(asio::ip::tcp::no_delay(true));
+		socket.set_option(asio::socket_base::keep_alive(true));
+	} catch (const std::system_error &e) {
+		g_logger().warn("[Connection::setSocketOptions] - Failed to set socket options: {}", e.what());
+	}
 }
 
 void Connection::accept(Protocol_ptr protocolPtr) {
@@ -160,6 +160,12 @@ void Connection::parseProxyIdentification(const std::error_code &error) {
 			parseHeader(error);
 			return;
 		} else {
+			if (serverName.length() < 2) {
+				g_logger().error("[Connection::parseProxyIdentification] - Server name too short.");
+				close(FORCE_CLOSE);
+				return;
+			}
+
 			size_t remainder = serverName.length() - 2;
 			if (remainder > 0) {
 				connectionState = CONNECTION_STATE_READINGS;
@@ -179,6 +185,12 @@ void Connection::parseProxyIdentification(const std::error_code &error) {
 			}
 		}
 	} else if (connectionState == CONNECTION_STATE_READINGS) {
+		if (serverName.length() < 2) {
+			g_logger().error("[Connection::parseProxyIdentification] - Server name too short.");
+			close(FORCE_CLOSE);
+			return;
+		}
+
 		size_t remainder = serverName.length() - 2;
 		if (strncasecmp(charData, &serverName[2], remainder) == 0) {
 			connectionState = CONNECTION_STATE_OPEN;
