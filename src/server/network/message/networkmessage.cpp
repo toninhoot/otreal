@@ -120,12 +120,7 @@ Position NetworkMessage::getPosition() {
 }
 
 // Skips count unknown/unused bytes in an incoming message
-void NetworkMessage::skipBytes(uint16_t count) {
-	if (count == 0 || !canRead(count)) {
-		g_logger().error("[{}] Invalid skip count: {} (position: {}, length: {})", __FUNCTION__, count, info.position, info.length);
-		return;
-	}
-
+void NetworkMessage::skipBytes(int16_t count) {
 	info.position += count;
 }
 
